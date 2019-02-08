@@ -20,7 +20,7 @@ int main(void)
 		}
 		else if(pid ==  0)
 		{
-			printf("HIJO %d\n", i);
+			printf("HIJO pid: %d, ppid: %d\n", getpid(), getppid());
 			exit(EXIT_SUCCESS);
 		}
 		else if(pid > 0)
@@ -32,3 +32,17 @@ int main(void)
 	exit(EXIT_SUCCESS);
 }
 
+/*
+
+	PREGUNTAS TEORICAS:
+
+	- a) 
+
+
+
+
+
+
+
+
+*/

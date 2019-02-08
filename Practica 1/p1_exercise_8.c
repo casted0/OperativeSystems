@@ -37,7 +37,7 @@ int main(void) {
   	close(fd[1]);
   	/* Leer algo de la tubería... el saludo! */
   	nbytes = read(fd[0], readbuffer, sizeof(readbuffer));
-  	printf("He recibido el string: %s", readbuffer);
+  	printf("He recibido el string: %s, Bytes: %d\n", readbuffer, nbytes); /* Añadido que imprima nbytes */
   	wait(NULL);
   	exit(EXIT_SUCCESS);
   }
