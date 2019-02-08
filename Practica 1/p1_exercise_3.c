@@ -23,7 +23,7 @@ int main(void)
 			printf("HIJO %d\n", i);
 			exit(EXIT_SUCCESS);
 		}
-		else if(pid >  0)
+		else if(pid > 0)
 		{
 			printf("PADRE %d\n", i);
 		}
