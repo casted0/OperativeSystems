@@ -4,7 +4,7 @@
 
 CC = gcc -pedantic
 CFLAGS = -Wall -pthread
-EXE = p1_exercise_3 p1_exercise_5 p1_exercise_7 p1_exercise_8 p1_exercise_9 p1_exercise_11
+EXE = p1_exercise_3 p1_exercise_4 p1_exercise_5 p1_exercise_7 p1_exercise_8 p1_exercise_9 p1_exercise_11
 
 all : $(EXE)
 
@@ -24,7 +24,7 @@ p1_exercise_4 : p1_exercise_4.o
 	@echo "# Generando p1_exercise_4"
 	@echo "# Depende de p1_exercise_4"
 	@echo "# Ha cambiado p1_exercise_4"
-	$(CC) $(CFLAGS) -o p1_exercise_3 p1_exercise_4.o
+	$(CC) $(CFLAGS) -o p1_exercise_4 p1_exercise_4.o
 
 p1_exercise_5 : p1_exercise_5.o
 	@echo "#---------------------------"
