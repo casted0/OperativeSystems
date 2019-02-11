@@ -26,6 +26,7 @@ int main(void)
 		else if(pid > 0)
 		{
 			printf("PADRE %d\n", i);
+			wait(NULL);
 		}
 	}
 	wait(NULL);
@@ -33,16 +34,14 @@ int main(void)
 }
 
 /*
-
 	PREGUNTAS TEORICAS:
 
-	- a) 
+	- a) Para responder a esta pregunta solo hace falta ejecutar el programa multiples veces, veremos que no siempre el resultado va a ser el mismo
+		 si realizamos el diagrama de forks para ver como se va a desarrollar el programa, es apreciable habiendo un unico wait al final, el proceso padre
+		 va a seguir creando procesos hijos sin que necesariamente acaben todos ellos, por lo tanto no podemos predecir el orden en el que estos procesos hijo
+		 van a finalizar.
 
+	- b) Añadidos getpid() y getppid()
 
-
-
-
-
-
-
+	- c) En la memoria
 */
