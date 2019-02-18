@@ -1,44 +1,32 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <time.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 
-#define NUM_PROC 3
+#define NUM_PROC 6
+
 
 int main(void)
 {
-	pid_t pid;
-	int i=0;
+    pid_t pid;
+	int i;
 
-	pid = fork();
-	if(pid <  0)
+	for(i = 0; i < NUM_PROC; i++)
 	{
-		printf("Error al emplear fork\n");
-		exit(EXIT_FAILURE);
-	}
-	else if(pid ==  0)
-	{
-		printf("HIJO [id]: [%d]\n", i);
-		for(i = 0; i < NUM_PROC; i++){
-			pid = fork();
-			if(pid < 0)
-			{
-				printf("Error al emplear fork\n");
-				exit(EXIT_FAILURE);
-			}else if(pid ==  0)
-			{
-				printf("HIJO [id]: [%d]\n", i);
-			}
+		if(fork()){
+			if(i == 0)
+				printf("PADRE %d\n", getpid());
+			break;
+		}else{
+			printf("HIJO %d de %d\n", getpid(), getppid());
 		}
-	}
-	else if(pid > 0)
-	{
-		printf("PADRE %d\n", i);
-		wait(NULL);
-	}
+	} 
 
-	wait(NULL);
+	if(i<5)
+		wait(NULL);
+
 	exit(EXIT_SUCCESS);
 }
 
@@ -49,6 +37,6 @@ a) El motivo de que el código del ejercicio 3 genere hijos que se quedan huérf
 
 b) Introducido wait(NULL en el p1_exercise_3.c)
 
-c) 
+c) Hecho
 
 */
