@@ -39,6 +39,7 @@ int main(void)
 	}
 
 	wait(NULL);
+    sleep(10000);
 	exit(EXIT_SUCCESS);
 }
 
