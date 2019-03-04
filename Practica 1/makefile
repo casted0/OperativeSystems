@@ -4,7 +4,7 @@
 
 CC = gcc -pedantic
 CFLAGS = -Wall -pthread
-EXE = p1_exercise_3 p1_exercise_4 p1_exercise_5 p1_exercise_7 p1_exercise_8 p1_exercise_9 p1_exercise_11
+EXE = p1_exercise_3 p1_exercise_4 p1_exercise_5 p1_exercise_7 p1_exercise_8 p1_exercise_9 p1_exercise_11 p1_exercise_12
 
 all : $(EXE)
 
@@ -60,6 +60,13 @@ p1_exercise_11 : p1_exercise_11.o
 	@echo "# Depende de p1_exercise_11"
 	@echo "# Ha cambiado p1_exercise_11"
 	$(CC) $(CFLAGS) -o p1_exercise_11 p1_exercise_11.o
+
+p1_exercise_12 : p1_exercise_12.o
+	@echo "#---------------------------"
+	@echo "# Generando p1_exercise_12 "
+	@echo "# Depende de p1_exercise_12"
+	@echo "# Ha cambiado p1_exercise_12"
+	$(CC) $(CFLAGS) -o p1_exercise_12 p1_exercise_12.o
 	rm -rf *.o
 
 p1_exercise_3.o : p1_exercise_3.c
@@ -110,6 +117,13 @@ p1_exercise_11.o : p1_exercise_11.c
 	@echo "# Depende de p1_exercise_11.o"
 	@echo "# Ha cambiado p1_exercise_11.o"
 	$(CC) $(CFLAGS) -c p1_exercise_11.c
+
+p1_exercise_12.o : p1_exercise_12.c
+	@echo "#---------------------------"
+	@echo "# Generando p1_exercise_12.o"
+	@echo "# Depende de p1_exercise_12.o"
+	@echo "# Ha cambiado p1_exercise_12.o"
+	$(CC) $(CFLAGS) -c p1_exercise_12.c
 
 ejercicio3_test:
 	@echo Ejecutando ejercicio 3
@@ -167,4 +181,11 @@ ejercicio11_test_v:
 	@echo Ejecutando ejercicio 11
 	@valgrind --leak-check=full ./p1_exercise_11
 
+ejercicio12_test:
+	@echo Ejecutando ejercicio 12
+	@./p1_exercise_12
+
+ejercicio12_test_v:
+	@echo Ejecutando ejercicio 12
+	@valgrind --leak-check=full ./p1_exercise_12
 

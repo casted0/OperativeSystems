@@ -1,0 +1,6 @@
+
+a)No podemos saber si el printf del padre se ejecutará antes que el del hijo o no. Cada vez que ejecutemos el programa pasará una de las posibles opciones.
+
+b) "DiagramaEJ3.png" es el fichero con el diagrama.
+
+c)Un proceso padre único va teniendo tantos hijos como hayamos definido en el define NUM_PROC, y cada hijo que tenga termina después de hacer su printf. Así que para cuando el padre vuelve a tener un hijo, el anterior ya ha terminado. (El padre tiene un wait para esperar al último hijo)

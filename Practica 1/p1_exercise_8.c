@@ -15,6 +15,7 @@ int main(void) {
   char *string = "Hola a todos!\n";
   char readbuffer[80];
 
+  nbytes = -1;
   pipe_status=pipe(fd);
   if(pipe_status == -1) {
   	perror("Error creando la tuberia\n");
@@ -37,7 +38,7 @@ int main(void) {
   	close(fd[1]);
   	/* Leer algo de la tubería... el saludo! */
   	nbytes = read(fd[0], readbuffer, sizeof(readbuffer));
-  	printf("He recibido el string: %s, Bytes: %d\n", readbuffer, nbytes); /* Añadido que imprima nbytes */
+  	printf("He recibido el string: %s", readbuffer);
   	wait(NULL);
   	exit(EXIT_SUCCESS);
   }

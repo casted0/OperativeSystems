@@ -16,6 +16,8 @@
 */
 void  processCat () {
 
+    int pid;
+
     /* Variables que usa el metodo getline para leer la entrada del usuario */
     char *fileName = NULL;
     size_t fileLen = 0;
@@ -70,6 +72,19 @@ void  processCat () {
    	 comando cat con el vector de argumentos args. El padre debe esperar a que
    	 el hijo termine
      */
+
+        pid=fork();
+
+        if(pid==0){
+          if(-1==execvp(*args,args)){
+            printf("\nError de execvp en processCat\n");
+          }
+        }
+        else{
+          wait(NULL);
+        }
+
+
    	 
     }
 
@@ -85,10 +100,29 @@ void  showAllFiles () {
     * Creamos un nuevo proceso hijo usando la llamada execlp y en el ejecutamos el
     * comando ls -l. El proceso padre debe de esperar a que el hijo termine.
     */
+    int pid;
+
+    pid=fork();
+
+    if(pid==0){
+      if(-1==execlp("ls", "ls", "-l", (char *)NULL)){
+        printf("\nError de execlp en showAllFiles\n");
+      }
+    }
+    else
+    {
+      wait(NULL);
+    }
+    
+
+    return;
+
 }
 
 int  main(void) {
+
     showAllFiles();
     processCat();
+
     exit (EXIT_SUCCESS);
 }

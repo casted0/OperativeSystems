@@ -1,0 +1,4 @@
+a)Cuando ejecutamos el padre no imprime nada, ya que el hijo simplemente cambia la variable char suya propia, no la de su padre.
+  Este programa es incorrecto ya que el hijo debería de tener el puntero del char del padre para poder modificarlo.
+  
+b)Hay que liberar memoria en los dos ya que al hacer fork se duplica la variable y por tanto su reserva de memoria.

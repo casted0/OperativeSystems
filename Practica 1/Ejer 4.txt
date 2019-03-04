@@ -1,0 +1,5 @@
+a) Deja huérfanos a todos sus hijos menos el último porque solo hace wait para su último hijo, del resto no se asegura a esperarlos, dependerá de como vaya la ejecución.
+
+b)Se ha actualizado el p1_exercise_3.c en la linea 29 añadiendo un wait.
+
+c)"ejer4.c" realizado
