@@ -11,9 +11,23 @@
 #define SECS 3
 
 
+int pid_hijos[N_READ];
+
 	void manejador(int sig){
+		int i;
     	printf("He conseguido capturar SIGKILL \n");
     	fflush(stdout);
+
+    	for(i=0;i<N_READ;i++){
+    		kill(pid_hijos[i],SIGTERM);
+    	}
+
+    	//sem_close(sem_escritura);
+    	//sem_close(sem_lectura);
+
+    	sem_unlink("/SEM_ESCRIT");
+		sem_unlink("/SEM_LECT");
+    	
     	exit(EXIT_SUCCESS);
 	}
 
@@ -66,6 +80,10 @@
 		sem_t * sem_lectura=NULL;
 		sem_t * sem_escritura=NULL;
 
+		//sem_unlink("/SEM_ESCRIT");
+		//sem_unlink("/SEM_LECT");
+
+
 		if ((sem_lectura = sem_open("/SEM_LECT", O_CREAT | O_EXCL, S_IRUSR | S_IWUSR, N_READ)) == SEM_FAILED) {
 			perror("sem_open");
 			exit(EXIT_FAILURE);
@@ -90,6 +108,7 @@
 		for(i=0;i<N_READ;i++){
 
 			if(!(pid=fork())){
+				pid_hijos[i]=getpid();
 				break;
 			}
 		}
