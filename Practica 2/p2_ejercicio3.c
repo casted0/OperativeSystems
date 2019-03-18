@@ -17,7 +17,7 @@ int main(void){
     struct sigaction act;
     act.sa_handler = manejador;
     sigemptyset(&(act.sa_mask));
-    act.sa_flags =0;
+    act.sa_flags = 0;
     
     if(sigaction(SIGINT,&act,NULL)<0){
         perror("sigaction");
