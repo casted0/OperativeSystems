@@ -23,7 +23,8 @@ int main(void) {
 
         }else if(pid == 0){
 
-            //sleep(30);
+        	printf("Soy el proceso hijo %d\n", getpid());
+            sleep(30);
             printf("Soy el proceso hijo %d y ya me toca terminar.\n", getpid());
             exit(EXIT_SUCCESS);
 

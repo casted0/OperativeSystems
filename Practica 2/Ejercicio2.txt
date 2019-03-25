@@ -1,0 +1,1 @@
+Los hijos imprimen el primer mensaje, pero el segundo no, ya que antes de hacerlo reciben la señal SIGTERM. 
