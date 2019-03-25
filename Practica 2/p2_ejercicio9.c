@@ -6,20 +6,20 @@
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <string.h>
 
 #define N_PROC 3
 #define SEM "/sem_fichero"
 
 void escribir(FILE * f, int id){
     fprintf(f, "%d\n", id);
-    usleep(1);
 }
 
 int main(void){
 
     FILE * fwr = fopen("ejercicio9.txt", "w");
     FILE * frd = fopen("ejercicio9.txt", "r");
-    int pid, i, j, id_hijo, count[N_PROC], leido;
+    int pid, i, j, id_hijo, count[N_PROC], leido, pids[N_PROC];
     int condicion = 0;
     sem_t *sem = NULL;
 
@@ -46,6 +46,8 @@ int main(void){
             id_hijo = i;
             break;
 
+        }else{
+            pids[i] = pid;
         }
 
     }
@@ -56,6 +58,7 @@ int main(void){
 
             sem_wait(sem);
             escribir(fwr, id_hijo);
+            usleep(1);
             sem_post(sem);
 
         }
@@ -78,11 +81,17 @@ int main(void){
 
             if(condicion){
                 printf("La carrera ha acabado.\n");
+                for(j=0;j<N_PROC;j++){
+                    kill(pids[j], SIGTERM);
+                    wait(NULL);
+                }
                 fclose(fwr);
                 fclose(frd);
                 sem_close(sem);
-                sem_unlink(SEM); 
+                sem_unlink(SEM);
                 exit(EXIT_SUCCESS);
+            }else{
+                memset(count, 0, N_PROC*sizeof(int));
             }
             sem_post(sem);
         
