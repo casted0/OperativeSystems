@@ -12,6 +12,7 @@
 
 
 int pid_hijos[N_READ];
+int lectores=0;
 
 	void manejador(int sig){
 		int i;
@@ -34,7 +35,6 @@ int pid_hijos[N_READ];
 
 
 	void Lectura(sem_t * sem_lectura, sem_t * sem_escritura) {
-		int lectores=0;
 
 		sem_wait(sem_lectura);
 		lectores++;
