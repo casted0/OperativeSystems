@@ -4,7 +4,7 @@
 
 CC = gcc -pedantic
 CFLAGS = -Wall -pthread
-EXE = p2_example_pause p2_example_sem p2_example_signal p2_example_sigprocmask p2_example_alarm p2_ejercicio2 p2_ejercicio3 p2_ejercicio3d clean
+EXE = p2_example_pause p2_example_sem p2_example_signal p2_example_sigprocmask p2_example_alarm p2_ejercicio2 p2_ejercicio3 p2_ejercicio3d p2_ejercicio7 p2_ejercicio9 clean
 
 all : $(EXE)
 
@@ -81,6 +81,20 @@ p2_ejercicio4 : p2_ejercicio4.o
 	@echo "# Ha cambiado p2_ejercicio4"
 	$(CC) $(CFLAGS) -o p2_ejercicio4 p2_ejercicio4.o
 
+p2_ejercicio7 : p2_ejercicio7.o
+	@echo "#---------------------------"
+	@echo "# Generando p2_ejercicio7 "
+	@echo "# Depende de p2_ejercicio7.o"
+	@echo "# Ha cambiado p2_ejercicio7"
+	$(CC) $(CFLAGS) -o p2_ejercicio7 p2_ejercicio7.o
+
+p2_ejercicio9 : p2_ejercicio9.o
+	@echo "#---------------------------"
+	@echo "# Generando p2_ejercicio9 "
+	@echo "# Depende de p2_ejercicio9.o"
+	@echo "# Ha cambiado p2_ejercicio9"
+	$(CC) $(CFLAGS) -o p2_ejercicio9 p2_ejercicio9.o
+
 ###########  OBJETOS ############
 
 p2_example_pause.o : p2_example_pause.c
@@ -146,6 +160,20 @@ p2_ejercicio4.o : p2_ejercicio4.c
 	@echo "# Ha cambiado p2_ejercicio4.o"
 	$(CC) $(CFLAGS) -c p2_ejercicio4.c
 
+p2_ejercicio7.o : p2_ejercicio7.c
+	@echo "#---------------------------"
+	@echo "# Generando p2_ejercicio7.o "
+	@echo "# Depende de p2_ejercicio7.o"
+	@echo "# Ha cambiado p2_ejercicio7.o"
+	$(CC) $(CFLAGS) -c p2_ejercicio7.c
+
+p2_ejercicio9.o : p2_ejercicio9.c
+	@echo "#---------------------------"
+	@echo "# Generando p2_ejercicio9.o "
+	@echo "# Depende de p2_ejercicio9.o"
+	@echo "# Ha cambiado p2_ejercicio9.o"
+	$(CC) $(CFLAGS) -c p2_ejercicio9.c
+
 ###########  EJERCICIOS ############
 
 test_ejercicio2:
@@ -171,6 +199,22 @@ test_ejercicio3d:
 test_ejercicio3d_v:
 	@echo Ejecutando ejercicio 3d con valgrind
 	@valgrind --leak-check=full ./p2_ejercicio3d
+
+test_ejercicio7:
+	@echo Ejecutando ejercicio 7
+	@./p2_ejercicio7
+
+test_ejercicio7_v:
+	@echo Ejecutando ejercicio 7 con valgrind
+	@valgrind --leak-check=full ./p2_ejercicio7
+
+test_ejercicio9:
+	@echo Ejecutando ejercicio 9
+	@./p2_ejercicio9
+
+test_ejercicio9_v:
+	@echo Ejecutando ejercicio 9 con valgrind
+	@valgrind --leak-check=full ./p2_ejercicio9
 
 ###########   EJEMPLOS  ############
 
