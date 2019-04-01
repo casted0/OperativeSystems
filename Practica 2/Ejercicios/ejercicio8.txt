@@ -1,0 +1,8 @@
+
+a) Se hacen lecturas y escrituras, lo que pasa es que el proceso que se esté ejecutando, tanto de lectura como de escritura, se ejecuta muchas veces seguidas antes de dejar al otro.
+
+b) Se ejecutan 10 lecturas y luego la escritura.
+
+c) Se ejecutan muchisimas veces lecturas, muchas veces la misma seguida muchas veces, antes de ejecutarse una escritura.
+
+d) Solo se produce un proceso de lectura, que se repite todo el rato sin dejar a ningún otro proceso de lectura ni al de escritura.

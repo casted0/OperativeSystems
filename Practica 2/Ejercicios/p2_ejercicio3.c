@@ -8,7 +8,6 @@
 void manejador(int sig){
     printf("Señal número %d recibida \n", sig);
     fflush(stdout);
-    exit(EXIT_SUCCESS);
 }
 
 
@@ -23,8 +22,6 @@ int main(void){
         perror("sigaction");
         exit(EXIT_FAILURE);
     }
-        
-
         
     while(1){
         printf("En espera de Ctrl+C (PID = %d)\n", getpid());

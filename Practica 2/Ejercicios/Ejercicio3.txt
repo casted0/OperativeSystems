@@ -1,0 +1,7 @@
+a)En este caso sí, ya que así está definido en los argumentos de la llamada a sigaction, aunque podría dar error su ejecución.
+
+b)Después de recibir la señal ce Control+C.
+
+c)Se ejecuta la acción predeterminada para esa señal.
+
+d)Porque SIGKILL mata al proceso, así que no podemos hacer nada más una vez recibida esa señal.
