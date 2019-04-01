@@ -8,7 +8,6 @@
 void manejador(int sig){
     printf("Señal número %d recibida \n", sig);
     fflush(stdout);
-    exit(EXIT_SUCCESS);
 }
 
 
