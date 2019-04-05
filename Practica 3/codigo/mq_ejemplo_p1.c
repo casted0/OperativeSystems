@@ -40,8 +40,8 @@ int main(void) {
 		return EXIT_FAILURE;
 	}
 
-	msg.valor = 29;
-	strcpy(msg.aviso, "Hola a todos");
+	msg.valor = 30;
+	strcpy(msg.aviso, "Hola Castedo");
 	
 	if(mq_send(queue, (char *)&msg, sizeof(msg), 1) == -1) {
 		fprintf (stderr, "Error sending message\n");
