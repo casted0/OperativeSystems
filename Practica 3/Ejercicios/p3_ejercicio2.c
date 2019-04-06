@@ -1,15 +1,20 @@
 #include <semaphore.h>
 #include <fcntl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
 #include <unistd.h>
 #include <signal.h>
+#include <stdlib.h>
+#include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 
 #define SEM "/sem_p3_ejer2" 
 #define SHM_NAME "/mq_p3_ejer2"
 #define NAME_MAX 50	
 
+int num_hijos;
 
 void manejador(int sig){
 	int i;
@@ -17,7 +22,7 @@ void manejador(int sig){
     printf("Soy %d, el padre y he recibido la senal SIGUSR1 \n",getpid());
     fflush(stdout);
 
-    for(i=0;i<atoi(argv[1]);i++){
+    for(i=0;i<num_hijos;i++){
     	wait(NULL);
     }
 
@@ -37,7 +42,7 @@ typedef struct{
 
 int main(int argc, char *argv[]){
 
-	int i,num,fd_shm;
+	int i,num,fd_shm,error;
 	pid_t pid;
 	ClientInfo * clientePrueba;
 
@@ -46,6 +51,7 @@ int main(int argc, char *argv[]){
 		return -1;
 	}
 
+	num_hijos=atoi(argv[1]);
 
 	//--------------MEMORY-----------------
 
@@ -69,15 +75,18 @@ int main(int argc, char *argv[]){
 	}
     
 	/* Map the memory segment */
-	example_struct = (ShmExampleStruct *)mmap(NULL, sizeof(*example_struct), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0);
+	clientePrueba = (ClientInfo *)mmap(NULL, sizeof(*clientePrueba), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0);
 
-	if(example_struct == MAP_FAILED) {
+	if(clientePrueba == MAP_FAILED) {
 		fprintf (stderr, "Error mapping the shared memory segment \n");
 		shm_unlink(SHM_NAME);
 		return EXIT_FAILURE;
 	}
-	printf("Pointer to shared memory segment: %p\n", (void*)example_struct);
+	printf("\nPointer to shared memory segment: %p\n", (void*)clientePrueba);
 
+	clientePrueba->id=0;
+	clientePrueba->previous_id=-1;
+	clientePrueba->name[0]=0;
 
 	//--------------FIN MEMORY-----------------
 
@@ -100,6 +109,8 @@ int main(int argc, char *argv[]){
 
     //--------------CREACION DE HIJOS-----------------
 
+    printf("Soy el padre con pid = %d, voy a crear %d hijos\n",getpid(),atoi(argv[1]));
+
     for(i=0;i<atoi(argv[1]);i++){
 
     	pid=fork();
@@ -120,7 +131,12 @@ int main(int argc, char *argv[]){
 
     	sleep(num); //DURMIENDO 
 
-
+    	
+		clientePrueba->previous_id++;   //INCREMENTA EN 1 EL ID PREVIO
+		printf("Por favor introduzca nombre para que le demos de alta:\n");  
+		scanf("%s",clientePrueba->name);  //GUARDA EL NUEVO NOMBRE 
+		clientePrueba->id++;  //INCREMENTA EN 1 EL ID DEL CLIENTE 
+		
 
 
     	kill(getppid(),SIGUSR1);  //MANDA SIGUSR1 AL PADRE Y TERMINA
@@ -130,7 +146,7 @@ int main(int argc, char *argv[]){
     }
     else{     //PADRE
 
-    	pause(NULL);   //ESPERANDO A RECIBIR SIGUSR1 DE ALGUN HIJO
+    	pause();   //ESPERANDO A RECIBIR SIGUSR1 DE ALGUN HIJO
 
     }
 
