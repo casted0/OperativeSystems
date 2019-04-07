@@ -1,0 +1,3 @@
+El planteamiento del ejercicio falla en que hay que impedir que aparezca por pantalla un segundo printf y scanf
+de otro cliente antes de que el anterior haya introducido su nombre y pulsado a enter.
+La solución será poner un semáforo que asegure esta condición. 
