@@ -55,10 +55,12 @@ int main(int argc, char **argv){
 	pid_t pid;
 	ClientInfo * clientePrueba;
 
-	if(!atoi(argv[1])||argc!=2){
+	if(argc!=2||atoi(argv[1])<=0){
 		printf("\nPor favor introduzca como parametro de entrada un numero, n>1\n");
 		return -1;
 	}
+
+	printf("Numero de argumentos = %d   y  argv[1] = %d",argc,atoi(argv[1]));
 
 	num_hijos=atoi(argv[1]);
 
@@ -121,6 +123,8 @@ int main(int argc, char **argv){
     //--------------CREACION DE HIJOS-----------------
 
     printf("Soy el padre con pid = %d, voy a crear %d hijos\n",getpid(),atoi(argv[1]));
+    printf("Por favor espere a que se le solicite introducir un nombre...\n");
+    fflush(stdout);
 
     for(i=0;i<atoi(argv[1]);i++){
 
