@@ -10,8 +10,8 @@
 #include <string.h>
 #include <sys/types.h>
 
-#define SEM "/sem_p3_ejer2" 
-#define SHM_NAME "/mq_p3_ejer2"
+#define SEM "/sem_p3_ejer2_solved" 
+#define SHM_NAME "/mq_p3_ejer2_solved"
 #define NAME_MAX 50	
 
 
@@ -41,11 +41,17 @@ int main(int argc, char **argv){
 	int i,num,fd_shm,error;
 	pid_t pid;
 	ClientInfo * clientePrueba;
+	sem_t *sem = NULL;
 
 	if(argc!=2||atoi(argv[1])<=0){
 		printf("\nPor favor introduzca como parametro de entrada un numero, n>1\n");
 		return -1;
 	}
+
+	if((sem = sem_open(SEM , O_CREAT | O_EXCL, S_IRUSR | S_IWUSR , 1))== SEM_FAILED){
+        perror("sem_open");
+        exit(EXIT_FAILURE);
+    } 
 
 	//--------------MEMORY-----------------
 
@@ -56,6 +62,7 @@ int main(int argc, char **argv){
 
 	if(fd_shm == -1) {
 		fprintf (stderr, "Error creating the shared memory segment \n");
+		sem_unlink(SEM);
 		return EXIT_FAILURE;
 	}
     
@@ -65,6 +72,7 @@ int main(int argc, char **argv){
 	if(error == -1) {
 		fprintf (stderr, "Error resizing the shared memory segment \n");
 		shm_unlink(SHM_NAME);
+		sem_unlink(SEM);
 		return EXIT_FAILURE;
 	}
     
@@ -74,6 +82,7 @@ int main(int argc, char **argv){
 	if(clientePrueba == MAP_FAILED) {
 		fprintf (stderr, "Error mapping the shared memory segment \n");
 		shm_unlink(SHM_NAME);
+		sem_unlink(SEM);
 		return EXIT_FAILURE;
 	}
 	//printf("\nPointer to shared memory segment: %p\n", (void*)clientePrueba);
@@ -96,6 +105,8 @@ int main(int argc, char **argv){
 
 	if(sigaction(SIGUSR1,&act,NULL)<0){
 	    perror("sigaction");
+	    sem_unlink(SEM);
+	    shm_unlink(SHM_NAME);
         exit(EXIT_FAILURE);
     }
 
@@ -129,15 +140,16 @@ int main(int argc, char **argv){
 
     	sleep(num); //DURMIENDO 
 
-    	
+    	sem_wait(sem); //PONEMOS A 0 EL SEMAFORO
+
 		clientePrueba->previous_id++;   //INCREMENTA EN 1 EL ID PREVIO
 		printf("\nPor favor introduzca nombre para que le demos de alta: ");  
 		scanf("%s",clientePrueba->name);  //GUARDA EL NUEVO NOMBRE 
 		clientePrueba->id++;  //INCREMENTA EN 1 EL ID DEL CLIENTE 
 		
-
-
     	kill(getppid(),SIGUSR1);  //MANDA SIGUSR1 AL PADRE Y TERMINA
+
+    	sem_post(sem); //PONEMOS A 1 EL SEMAFORO
 
     	return 0;
 
@@ -162,10 +174,11 @@ int main(int argc, char **argv){
 
 	    munmap(clientePrueba, sizeof(*clientePrueba));
 		shm_unlink(SHM_NAME);
+		sem_unlink(SEM);
 
 	    return 0;
 
     }
 
 	return 0;
-}
+} 
