@@ -14,7 +14,15 @@
 #define SHM_NAME "/mq_p3_ejer2"
 #define NAME_MAX 50	
 
+
+typedef struct{
+	int previous_id; //!< Id of the previous client. Inicializar a -1
+	int id; //!< Id of the current client.  Inicializar a 0
+	char name[NAME_MAX]; //!< Name of the client.
+} ClientInfo;
+
 int num_hijos;
+ClientInfo * clientePruebaGlobal;
 
 void manejador(int sig){
 	int i;
@@ -26,21 +34,22 @@ void manejador(int sig){
     	wait(NULL);
     }
 
+    printf("Mostrando informacion de ClienInfo:\n");
+    printf("Previuos_id = %d    Id = %d    Name = %s\n",clientePruebaGlobal->previous_id,clientePruebaGlobal->id,
+    		clientePruebaGlobal->name);
+
     printf("Todos mis hijos han finalizado, terminando p3_ejercicio2.c \n");
     fflush(stdout);
+
+    munmap(clientePruebaGlobal, sizeof(*clientePruebaGlobal));
+	shm_unlink(SHM_NAME);
 
     exit(EXIT_SUCCESS);
 }
 
 
-typedef struct{
-	int previous_id; //!< Id of the previous client. Inicializar a -1
-	int id; //!< Id of the current client.  Inicializar a 0
-	char name[NAME_MAX]; //!< Name of the client.
-} ClientInfo;
 
-
-int main(int argc, char *argv[]){
+int main(int argc, char **argv){
 
 	int i,num,fd_shm,error;
 	pid_t pid;
@@ -83,6 +92,8 @@ int main(int argc, char *argv[]){
 		return EXIT_FAILURE;
 	}
 	printf("\nPointer to shared memory segment: %p\n", (void*)clientePrueba);
+
+	clientePruebaGlobal=clientePrueba;
 
 	clientePrueba->id=0;
 	clientePrueba->previous_id=-1;

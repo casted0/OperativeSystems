@@ -1,1 +1,16 @@
-gcc -pthread -lrt -o p3_ejercicio2 p3_ejercicio2.c  
+CPP = gcc
+CFLAGS = -g -Wall -pedantic
+LDLIBS = -lrt
+
+BOLD=\e[1m
+NC=\e[0m
+
+PROGS = p3_ejercicio2
+
+all: $(PROGS)
+
+clean: 
+	@rm -f $(PROGS)
+
+$(PROGS):
+	$(CPP) $(CFLAGS) $@.c -o $@ $(LDLIBS)
