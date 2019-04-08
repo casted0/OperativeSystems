@@ -24,16 +24,14 @@ int main(int argc, char ** argv){
     char nombre_mq_0[256];
     char nombre_mq_1[256];
     int i, pid;
-    int pids_hijos[N_PROC];
     mqd_t queue0, queue1;
     struct mq_attr attributes;
-	Mensaje msg;
 
     // Argumentos para los execv
 
-    char * args_procA[] = {argv[1], argv[2]}; // Proceso A nombre del fichero a crear y nombre de la cola de escritura
-    char * args_procB[] = {argv[2], argv[3]}; // Proceso B nombre de la cola de escritura y lectura
-    char * args_procC[] = {argv[3]}; // Proceso C nombre de la cola de lectura
+    char * args_procA[] = {"p3_ejercicio4_procesoA", argv[1], argv[2], NULL}; // Proceso A nombre del fichero a crear y nombre de la cola de escritura
+    char * args_procB[] = {"p3_ejercicio4_procesoB", argv[2], argv[3], NULL}; // Proceso B nombre de la cola de escritura y lectura
+    char * args_procC[] = {"p3_ejercicio4_procesoC", argv[3], NULL}; // Proceso C nombre de la cola de lectura
 
     if(argc != 4){
 
@@ -84,13 +82,17 @@ int main(int argc, char ** argv){
 
         }else if(pid == 0){
 
+            sleep(1);
+
             if(i == 0){
                 printf("Ejecutando proceso A.\n");
                 execv("p3_ejercicio4_procesoA", args_procA);
-            else if(i == 1){
+            }else if(i == 1){
+                sleep(1);
                 printf("Ejecutando proceso B.\n");
                 execv("p3_ejercicio4_procesoB", args_procB);
-            else{
+            }else{
+                sleep(2);
                 printf("Ejecutando proceso C.\n");
                 execv("p3_ejercicio4_procesoC", args_procC);
             }
@@ -98,8 +100,6 @@ int main(int argc, char ** argv){
             break; // En caso de que se cambie N_PROC no estaría contemplado.
 
         }
-
-        pids_hijos[i] = pid;
 
     }
 
@@ -113,6 +113,7 @@ int main(int argc, char ** argv){
         mq_close(queue1);
 	    mq_unlink(nombre_mq_0);
         mq_unlink(nombre_mq_1);
+        shm_unlink(nombre_fichero);
         return EXIT_SUCCESS;
 
     }

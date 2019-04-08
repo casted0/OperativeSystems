@@ -25,7 +25,7 @@ int main(int argc, char ** argv){
 
     char nombre_mq[256];
     mqd_t queueREAD;
-    Mensaje * msg;
+    Mensaje msg;
 
     printf("He entrado en el proceso C.\n"); // Mensaje de debug
 
@@ -36,12 +36,14 @@ int main(int argc, char ** argv){
 
     strcpy(nombre_mq, argv[1]);
 
-    queueREAD = mq_open(nombre_mq, O_RDONLY); // Abrimos la cola unicamente para leer
+    queueREAD = mq_open(nombre_mq, O_RDONLY | O_NONBLOCK); // Abrimos la cola unicamente para leer
 
     if(queueREAD == (mqd_t)-1) {
 		fprintf (stderr, "Error abriendo cola de mensajes de lectura en C.\n"); 
 		return EXIT_FAILURE;
 	}
+
+    printf("Voy a esperar hasta que me llegue el mensaje.\n");
 
     if(mq_receive(queueREAD, (char *)&msg, sizeof(msg), NULL) == -1) {  // Recivimos el mensaje y si no da error lo imprimimos
 		fprintf (stderr, "Error recibiendo el mensaje en C.\n");

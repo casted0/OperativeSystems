@@ -30,7 +30,7 @@ int main(int argc, char ** argv){
     char nombre_mq0[256];
     char nombre_mq1[256];
     mqd_t queueWRITE, queueREAD;
-    Mensaje * msg;
+    Mensaje msg;
 
     printf("He entrado en el proceso B.\n"); // Mensaje de debug
 

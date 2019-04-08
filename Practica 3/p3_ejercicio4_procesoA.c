@@ -36,7 +36,7 @@ int main(int argc, char ** argv){
         printf("Error en los argumentos, debería haber recibido -nombre_fichero -nombre_mq.\n");
         return EXIT_FAILURE;
     }
-
+    
     strcpy(nombre_fichero, argv[1]);
     strcpy(nombre_mq, argv[2]);
 
@@ -55,11 +55,11 @@ int main(int argc, char ** argv){
 		return EXIT_FAILURE;
     }
 
-    msg = (Mensaje*)mmap(NULL, sizeof(*example_struct), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0); // Creamos el mensaje dentro de la shared memory
+    msg = (Mensaje*)mmap(NULL, sizeof(*msg), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0); // Creamos el mensaje dentro de la shared memory
 
     if(msg == MAP_FAILED) {
 		fprintf (stderr, "Error mapeando la memoria para el mensaje.\n");
-		shm_unlink(SHM_NAME);
+		shm_unlink(nombre_fichero);
 		return EXIT_FAILURE;
 	}
 
@@ -70,7 +70,7 @@ int main(int argc, char ** argv){
 		return EXIT_FAILURE;
 	}
 
-    strcpy(msg.text, "Mensaje mandado desde A.");   // Guardamos en el mensaje un texto 
+    strcpy(msg->text, "Mensaje mandado desde A.");   // Guardamos en el mensaje un texto 
 
     if(mq_send(queueWRITE, (char *)&msg, sizeof(msg), 1) == -1) {   // Mandamos el mensaje a la cola de escritura
 		fprintf (stderr, "Error mandando el mensaje en A.\n");
