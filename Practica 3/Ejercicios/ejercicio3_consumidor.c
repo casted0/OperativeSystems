@@ -17,7 +17,7 @@
 
 int main(){
 
-	int fd_shm;
+	int fd_shm,eleccion;
 	sem_t *sem = NULL;
 	char caracter_leido;
 	ColaPC * cola;
@@ -53,7 +53,7 @@ int main(){
 
 	sem_wait(sem);
 
-	printf("\nLeyendo primer caracter de la cadena... ");
+	printf("\nExtrayendo primer caracter de la cadena... ");
 
 	fflush(stdout);
 
@@ -62,15 +62,49 @@ int main(){
 	while(caracter_leido!=0&&caracter_leido!=24){
 
 		printf("\nEl caracter leido es %c",caracter_leido);
-		fflush(stdout);
+		printf("\nHay %d caracteres en la cola",colaGetTamanio(cola));
 
-		sem_post(sem);
+		if(colaIsEmpty(cola)==TRUE){
 
-		sleep(2);
+			printf("\nCola vacia, esperando a que el productor inserte caracter en la cola...");
+			fflush(stdout);
+			sem_post(sem);   //CEDEMOS EL TURNO AL PRODUCTOR
+			sleep(1);        //ESPERAMOS 1 SEGUNDO PARA ASEGURAR QUE EL PRODUCTOR ENTRA AL SEMAFORO
+			sem_wait(sem);	 //ESPERAMOS A QUE EL PRODUCTOR NOS DEVUELVA EL TURNO
 
-		sem_wait(sem);
+		}
 
-		printf("\nLeyendo siguiente caracter de la cadena... ");
+		else{
+
+			printf("\nSi quiere extraer otro caracter introduzca el numero 1");
+			printf("\nSi quiere ceder el turno al consumido introduzca el numero 0");
+			printf("\nIntroduzca eleccion: ");
+			scanf("\n%d",&eleccion);
+
+			while(eleccion!=1&&eleccion!=0){
+
+				printf("\nEleccion invalida");
+				printf("\nSi quiere introducir otro caracter introduzca el numero 1");
+				printf("\nSi quiere ceder el turno al consumido introduzca el numero 0");
+				printf("\nIntroduzca eleccion: ");
+				scanf("\n%d",&eleccion);
+
+			}
+
+
+			if(!eleccion){
+
+				printf("\nCediendo el turno al productor...");
+				fflush(stdout);
+				sem_post(sem);	//CEDEMOS EL TURNO AL PRODUCTOR
+				sleep(1);		//ESPERAMOS 1 SEGUNDO PARA ASEGURAR QUE EL PRODUCTOR ENTRA AL SEMAFORO
+				sem_wait(sem); //ESPERAMOS A QUE EL PRODUCTOR NOS DEVUELVA EL TURNO
+			}
+
+		}
+
+		printf("\nEs tu turno, hay %d caracteres en la cola\n"
+		 "Extrayendo siguiente caracter de la cadena... ",colaGetTamanio(cola));
 
 		caracter_leido=popColaPC(cola);
 	}

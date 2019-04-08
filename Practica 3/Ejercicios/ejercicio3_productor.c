@@ -17,12 +17,12 @@
 
 int main(){
 
-	int fd_shm,error;
+	int fd_shm,error,eleccion;
 	sem_t *sem = NULL;
 	ColaPC * cola;
 	char caracter;
 
-	//Para el principio y debuguear
+	//Por si acaso hay problemas, de ejecucion y no se liberan correctamente el semaforo o la memoria 
 	//shm_unlink(SHM_NAME);
     //sem_unlink(SEM);
 
@@ -76,11 +76,11 @@ int main(){
 
 	printf("\nBienvenido al productor, inicie este programa antes del consumidor para un correcto funcionamiento.");
 
-	sem_wait(sem);
+	sem_wait(sem); //Bloqueamos al consumidor ya que aun no hay nada en la cola y tenemos que ser los primeros
 
 	printf("\nPor favor introduzca caracter: ");
 
-	while(scanf("\n%c",&caracter)!=EOF && caracter!=48){ //48 es para debuguear mas facil introduciendo un 0
+	while(scanf("\n%c",&caracter)!=EOF){ 
 
 		if(pushColaPC(cola, caracter)==ERROR){
 			printf("Error en productor al introducir caracter en la colaPC\n");
@@ -94,15 +94,48 @@ int main(){
 		}
 
 		printf("\nCaracter introducido a la cola correctamente");
-		fflush(stdout);
+		printf("\nHay %d caracteres en la cola",colaGetTamanio(cola));
 
-		sem_post(sem);   
+		if(colaIsFull(cola)==TRUE){
 
-		sleep(1);
+			printf("\nCola llena, esperando a que el consumidor extraiga...");
+			fflush(stdout);
+			sem_post(sem);	//CEDEMOS EL TURNO AL CONSUMIDOR
+			sleep(1);	    //ESPERAMOS 1 SEGUNDO PARA ASEGURAR QUE EL CONSUMIDOR ENTRA AL SEMAFORO
+			sem_wait(sem);  //ESPERAMOS A QUE EL CONSUMIDOR NOS DEVUELVA EL TURNO
 
-		sem_wait(sem);	
+		}
 
-		printf("\nPor favor introduzca nuevo caracter: ");
+		else{
+
+			printf("\nSi quiere introducir otro caracter introduzca el numero 1");
+			printf("\nSi quiere ceder el turno al consumido introduzca el numero 0");
+			printf("\nIntroduzca eleccion: ");
+			scanf("\n%d",&eleccion);
+
+			while(eleccion!=1&&eleccion!=0){
+
+				printf("\nEleccion invalida");
+				printf("\nSi quiere introducir otro caracter introduzca el numero 1");
+				printf("\nSi quiere ceder el turno al consumido introduzca el numero 0");
+				printf("\nIntroduzca eleccion: ");
+				scanf("\n%d",&eleccion);
+
+			}
+
+
+			if(!eleccion){
+
+				printf("\nCediendo el turno al consumidor...");
+				fflush(stdout);
+				sem_post(sem); 	//CEDEMOS EL TURNO AL CONSUMIDOR
+				sleep(1);	    //ESPERAMOS 1 SEGUNDO PARA ASEGURAR QUE EL CONSUMIDOR ENTRA AL SEMAFORO
+				sem_wait(sem);  //ESPERAMOS A QUE EL CONSUMIDOR NOS DEVUELVA EL TURNO
+			}	
+		}
+
+		printf("\nEs tu turno, hay %d caracteres en la cola\n"
+			"Por favor introduzca nuevo caracter: ",colaGetTamanio(cola));
 	}
 
 	printf("\nEOF detectado, terminando programa...\n");

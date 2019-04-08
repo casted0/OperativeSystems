@@ -10,7 +10,7 @@
 
 typedef struct _ColaPC{
 
-    int head,tail;
+    int head,tail,tamanio;
     char colaCircular[TAM_COLA];
 }ColaPC;
 
@@ -25,6 +25,7 @@ typedef enum {
 
 ColaPC * newColaPC();
 void destroyColaPC(ColaPC * cola);
+int colaGetTamanio(ColaPC * cola);
 Status pushColaPC(ColaPC * cola, char x);
 char popColaPC(ColaPC * cola);
 Bool colaIsFull(ColaPC * cola);

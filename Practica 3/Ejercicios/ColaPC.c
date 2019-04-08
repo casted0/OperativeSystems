@@ -17,6 +17,7 @@ ColaPC * newColaPC(){
 
 	nuevaCola->head=0;
 	nuevaCola->tail=0;
+	nuevaCola->tamanio=0;
 
 	return nuevaCola;
 
@@ -34,6 +35,11 @@ void destroyColaPC(ColaPC * cola){
 	return;
 }
 
+int colaGetTamanio(ColaPC * cola){
+
+	return cola->tamanio;
+}
+
 
 Status pushColaPC(ColaPC * cola, char x){
 
@@ -45,6 +51,7 @@ Status pushColaPC(ColaPC * cola, char x){
 		return ERROR;
 	}
 
+	cola->tamanio++;
 
 	cola->colaCircular[cola->tail]=x;
 
@@ -65,6 +72,8 @@ char popColaPC(ColaPC * cola){
 	if(colaIsEmpty(cola)==TRUE){
 		return 24;
 	}
+
+	cola->tamanio--;
 
 	x=cola->colaCircular[(cola->head)];
 
