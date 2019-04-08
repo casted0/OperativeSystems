@@ -22,6 +22,10 @@ int main(){
 	ColaPC * cola;
 	char caracter;
 
+	//Para el principio y debuguear
+	//shm_unlink(SHM_NAME);
+    //sem_unlink(SEM);
+
 	if((sem = sem_open(SEM , O_CREAT | O_EXCL, S_IRUSR | S_IWUSR , 1))== SEM_FAILED){
         perror("sem_open");
         exit(EXIT_FAILURE);
@@ -76,7 +80,7 @@ int main(){
 
 	printf("\nPor favor introduzca caracter: ");
 
-	while(scanf("%c",&caracter)!=EOF && caracter!=48){
+	while(scanf("\n%c",&caracter)!=EOF && caracter!=48){ //48 es para debuguear mas facil introduciendo un 0
 
 		if(pushColaPC(cola, caracter)==ERROR){
 			printf("Error en productor al introducir caracter en la colaPC\n");
@@ -90,12 +94,13 @@ int main(){
 		}
 
 		printf("\nCaracter introducido a la cola correctamente");
+		fflush(stdout);
 
-		sem_post(sem);
+		sem_post(sem);   
 
 		sleep(1);
 
-		sem_wait(sem);
+		sem_wait(sem);	
 
 		printf("\nPor favor introduzca nuevo caracter: ");
 	}

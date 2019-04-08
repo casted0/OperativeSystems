@@ -22,6 +22,10 @@ int main(){
 	char caracter_leido;
 	ColaPC * cola;
 
+	printf("\nBienvenido al consumidor, inicie este programa despues del productor para un correcto funcionamiento.");
+
+	fflush(stdout);
+
 	sem=sem_open(SEM, O_CREAT);
 
 
@@ -29,7 +33,7 @@ int main(){
 
 	/* We open the shared memory */
 	fd_shm = shm_open(SHM_NAME,
-			O_RDONLY, /* Obtain it and open for reading */
+			O_RDWR, /* Obtain it and open for reading and writing*/
 			0); /* Unused */ 
 
 	if(fd_shm == -1) {
@@ -37,7 +41,7 @@ int main(){
 	}
       
 	/* Map the memory segment */
-	cola = (ColaPC*)mmap(NULL, sizeof(*cola), PROT_READ, MAP_SHARED, fd_shm, 0);
+	cola = (ColaPC*)mmap(NULL, sizeof(*cola), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0);
 	if(cola == MAP_FAILED) {
 		fprintf (stderr, "Error mapping the shared memory segment \n");
 		return EXIT_FAILURE;
@@ -47,21 +51,22 @@ int main(){
 
 	//--------------INICIO CONSUMIDOR-----------------
 
-	printf("\nBienvenido al consumidor, inicie este programa despues del productor para un correcto funcionamiento.");
-
 	sem_wait(sem);
 
 	printf("\nLeyendo primer caracter de la cadena... ");
 
+	fflush(stdout);
+
 	caracter_leido=popColaPC(cola);
 
-	while(caracter_leido!=0||caracter_leido!=24){
+	while(caracter_leido!=0&&caracter_leido!=24){
 
 		printf("\nEl caracter leido es %c",caracter_leido);
+		fflush(stdout);
 
 		sem_post(sem);
 
-		sleep(1);
+		sleep(2);
 
 		sem_wait(sem);
 

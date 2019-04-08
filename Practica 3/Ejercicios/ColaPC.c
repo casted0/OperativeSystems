@@ -37,7 +37,7 @@ void destroyColaPC(ColaPC * cola){
 
 Status pushColaPC(ColaPC * cola, char x){
 
-	if(!cola||!x){
+	if(!cola){
 		return ERROR;
 	}
 
