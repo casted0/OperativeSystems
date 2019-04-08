@@ -4,12 +4,6 @@
 
 #include "ColaPC.h"
 
-struct _ColaPC{
-
-    int head,tail;
-    char colaCircular[TAM_COLA];
-};
-
 
 ColaPC * newColaPC(){
 
@@ -65,14 +59,14 @@ char popColaPC(ColaPC * cola){
 	char x;
 
 	if(!cola){
-		return NULL;
+		return 24;
 	}
 
 	if(colaIsEmpty(cola)==TRUE){
-		return NULL;
+		return 24;
 	}
 
-	x=cola->colaCircular[(cola->head)]
+	x=cola->colaCircular[(cola->head)];
 
 	cola->head=(cola->head+1)%TAM_COLA;
 
@@ -91,7 +85,7 @@ Bool colaIsFull(ColaPC * cola){
 
 }
 
-Bool colaIsEmty(ColaPC * cola){
+Bool colaIsEmpty(ColaPC * cola){
 
 	if(cola->head==cola->tail){
 		return TRUE;

@@ -169,7 +169,7 @@ int main(int argc, char **argv){
     		//flush(stdout);                     
     	}
 
-    	printf("\nTodos mis hijos han finalizado, terminando p3_ejercicio2.c \n");
+    	printf("\nTodos mis hijos han finalizado, terminando p3_ejercicio2_solved.c \n");
 	    fflush(stdout);
 
 	    munmap(clientePrueba, sizeof(*clientePrueba));

@@ -8,7 +8,11 @@
 
 #define TAM_COLA 10  
 
-typedef struct _ColaPC ColaPC;
+typedef struct _ColaPC{
+
+    int head,tail;
+    char colaCircular[TAM_COLA];
+}ColaPC;
 
 typedef enum {
     ERROR=0, OK=1
@@ -24,6 +28,6 @@ void destroyColaPC(ColaPC * cola);
 Status pushColaPC(ColaPC * cola, char x);
 char popColaPC(ColaPC * cola);
 Bool colaIsFull(ColaPC * cola);
-Bool colaIsEmty(ColaPC * cola);
+Bool colaIsEmpty(ColaPC * cola);
 
 #endif /* COLAPC_H */

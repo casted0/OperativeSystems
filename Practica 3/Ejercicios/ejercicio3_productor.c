@@ -17,7 +17,7 @@
 
 int main(){
 
-	int fd_shm;
+	int fd_shm,error;
 	sem_t *sem = NULL;
 	ColaPC * cola;
 	char caracter;
@@ -37,6 +37,7 @@ int main(){
 
 	if(fd_shm == -1) {
 		fprintf (stderr, "Error creating the shared memory segment \n");
+		sem_close(sem);
 		sem_unlink(SEM);
 		return EXIT_FAILURE;
 	}
@@ -46,6 +47,7 @@ int main(){
 
 	if(error == -1) {
 		fprintf (stderr, "Error resizing the shared memory segment \n");
+		sem_close(sem);
 		shm_unlink(SHM_NAME);
 		sem_unlink(SEM);
 		return EXIT_FAILURE;
@@ -56,6 +58,7 @@ int main(){
 
 	if(cola == MAP_FAILED) {
 		fprintf (stderr, "Error mapping the shared memory segment \n");
+		sem_close(sem);
 		shm_unlink(SHM_NAME);
 		sem_unlink(SEM);
 		return EXIT_FAILURE;
@@ -68,15 +71,19 @@ int main(){
 	//--------------INICIO PRODUCTOR-----------------
 
 	printf("\nBienvenido al productor, inicie este programa antes del consumidor para un correcto funcionamiento.");
+
+	sem_wait(sem);
+
 	printf("\nPor favor introduzca caracter: ");
 
-	while(scanf("%c",&caracter)!=EOF){
+	while(scanf("%c",&caracter)!=EOF && caracter!=48){
 
 		if(pushColaPC(cola, caracter)==ERROR){
 			printf("Error en productor al introducir caracter en la colaPC\n");
 			fflush(stdout);
 
 			munmap(cola, sizeof(*cola));
+			sem_close(sem);
 			shm_unlink(SHM_NAME);
 		    sem_unlink(SEM);
 			return -1;
@@ -84,14 +91,40 @@ int main(){
 
 		printf("\nCaracter introducido a la cola correctamente");
 
+		sem_post(sem);
+
+		sleep(1);
+
+		sem_wait(sem);
+
 		printf("\nPor favor introduzca nuevo caracter: ");
 	}
-
 
 	printf("\nEOF detectado, terminando programa...\n");
 	fflush(stdout);
 
+	caracter=0;
+
+	if(pushColaPC(cola, caracter)==ERROR){
+		printf("Error en productor al introducir caracter 'Fin de Cadena' en la colaPC\n");
+		fflush(stdout);
+
+		sem_post(sem);
+		sleep(1);
+
+		munmap(cola, sizeof(*cola));
+		sem_close(sem);
+		shm_unlink(SHM_NAME);
+		sem_unlink(SEM);
+		return -1;
+	}
+
+	sem_post(sem);
+
+	sleep(1);	
+
 	munmap(cola, sizeof(*cola));
+	sem_close(sem);
 	shm_unlink(SHM_NAME);
     sem_unlink(SEM);
 
