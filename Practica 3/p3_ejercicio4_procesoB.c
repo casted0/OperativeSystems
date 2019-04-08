@@ -61,6 +61,8 @@ int main(int argc, char ** argv){
 		return EXIT_FAILURE;
 	}
 
+    printf("Mensaje recibido en B: %s\n", msg.text);
+
     for(i = 0; i < strlen(msg.text); i++){
         msg.text[i] = msg.text[i] + 1;
     }

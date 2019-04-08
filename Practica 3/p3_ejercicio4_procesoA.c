@@ -28,6 +28,7 @@ int main(int argc, char ** argv){
     char nombre_mq[256];
     int fd_shm, error;
     Mensaje * msg;
+    Mensaje contenido;
     mqd_t queueWRITE;
 
     printf("He entrado en el proceso A.\n"); // Mensaje de debug
@@ -55,13 +56,15 @@ int main(int argc, char ** argv){
 		return EXIT_FAILURE;
     }
 
-    msg = (Mensaje*)mmap(NULL, sizeof(*msg), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0); // Creamos el mensaje dentro de la shared memory
+    msg = (Mensaje *)mmap(NULL, sizeof(*msg), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0); // Creamos el mensaje dentro de la shared memory
 
     if(msg == MAP_FAILED) {
 		fprintf (stderr, "Error mapeando la memoria para el mensaje.\n");
 		shm_unlink(nombre_fichero);
 		return EXIT_FAILURE;
 	}
+
+    contenido = *msg;
 
     queueWRITE = mq_open(nombre_mq, O_WRONLY); // Abrimos la cola unicamente para escribir
 
@@ -70,9 +73,9 @@ int main(int argc, char ** argv){
 		return EXIT_FAILURE;
 	}
 
-    strcpy(msg->text, "Mensaje mandado desde A.");   // Guardamos en el mensaje un texto 
+    strcpy(contenido.text, "Mensaje mandado desde A.");   // Guardamos en el mensaje un texto 
 
-    if(mq_send(queueWRITE, (char *)&msg, sizeof(msg), 1) == -1) {   // Mandamos el mensaje a la cola de escritura
+    if(mq_send(queueWRITE, (char *)&contenido, sizeof(contenido), 1) == -1) {   // Mandamos el mensaje a la cola de escritura
 		fprintf (stderr, "Error mandando el mensaje en A.\n");
 		return EXIT_FAILURE; 
 	}

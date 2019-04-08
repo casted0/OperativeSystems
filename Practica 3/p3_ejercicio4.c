@@ -106,9 +106,7 @@ int main(int argc, char ** argv){
     if(pid){
 
         printf("Soy el proceso padre, en cuanto acaben los hijos cerraré las colas de mensajes.\n");
-        for(i = 0; i < N_PROC; i++){
-            wait(NULL);
-        }
+        sleep(5);
         mq_close(queue0);
         mq_close(queue1);
 	    mq_unlink(nombre_mq_0);
