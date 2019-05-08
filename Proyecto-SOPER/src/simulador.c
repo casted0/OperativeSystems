@@ -22,6 +22,7 @@ int equipo3 = 0;
 int main() {
 
     tipo_mapa * mapa = NULL;
+    int pid = 1, i;
 
 	printf("Simulador iniciado...\n");
 
@@ -32,7 +33,37 @@ int main() {
         exit(EXIT_FAILURE);
     }
 
-    printf("El mapa y las naves han sido creados correctamente.\n");
+    // INICIAR PROCESOS JEFE, 3 PORQUE HAY 3 EQUIPOS
+
+    for(i = 0; i < N_EQUIPOS; i++){
+
+        if(pid != 0){
+            printf("Soy el simulador y estoy creando al jefe numero %d.\n", i);
+            pid = fork();
+        }else if(pid == -1){
+            printf("Error creando procesos jefes.\n");
+        }else{
+            break;
+        }
+
+    }
+
+    // ------ CODIGO DE LOS JEFES Y ESPERA DEL SIMULADOR A QUE ACABEN ------ //
+
+    if(pid == 0){
+        usleep(500);
+        printf("Soy el jefe numero %d.\n", (i-1));
+        sleep(15);
+    }else{
+        for(i = 0; i < N_EQUIPOS; i++){
+            wait(NULL);
+        }
+    }
+
+
+
+
+    // ------ LIBERAR Y ACABAR ------ //
 
     destruir_mapa(mapa);
     exit(EXIT_SUCCESS);
