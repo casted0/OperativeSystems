@@ -1,0 +1,61 @@
+
+ESTRUCTURA
+
+La práctica se estructura en 1 proceso “simulador”, n procesos “jefe”(tantos como equipos), m procesos “nave”.
+
+Además,existirá un proceso monitor, que mostrará el desarrollo de la simulación y que tendrá
+que ser ejecutado desde un terminal aparte. A continuación,se detalla los principales mecanismos
+de comunicación entre los diferentes procesos. Pueden ser necesarios mecanismos adicionales de
+comunicación y sincronización tales como señales, semáforos, etc. 
+
+El alumno es libre de añadir los mecanismos que considere necesarios además de los aquí especificados.
+
+•La comunicación comandos entre el proceso“simulador” y los procesos “jefe” se realizará mediante tuberías.
+
+•La comunicación de ordenes entre cadaproceso“jefe” y los procesos “nave” correspondientes se realizará mediante tuberías.
+
+•La comunicación de acciones entre los procesos nave y el proceso simulador se realizarámediante cola de mensajes.
+
+•Todo  el  estado y  mapa dela simulación  se mantendrá  en  memoria compartida para que otros procesosque lo necesiten puedan hacer uso de esta información.
+
+•El  turno  se  implementará  mediante una señal  de alarma  enel  proceso “simulador”, de tal forma que
+ éste pueda estar procesando acciones hasta la llegada de un nuevo turno.
+
+
+PROCESO SIMULADOR
+
+Es el proceso principal de la práctica, que será ejecutado por el usuario y tendrá la responsabilidad de:
+
+- Inicializar recursos
+
+- Inicializar el mapa con una configuración de naves. 
+Eres libre de elegir cuál. Por  ejemplo, cada  equipo  en  una  esquina del  mapa, o  cada  equipo  en  un lateral del mapa, etc.
+
+- Crear tantos procesos “jefe”como equipos haya  definidos. Y esperar su muerte cuando finalice la simulación.
+
+- La  comunicación con  los  procesos “jefe” será a través de tuberías y se notificará:
+    o La llegada de un nuevo turno:
+     “TURNO”oDESTRUIR<número  nave>:  Manda “DESTRUIR” la  nave <númeronave> al jefe que corresponda.
+    o La finalización de la simulación: 
+     “FIN”-La detección de que la simulación debe finalizar. 
+     Puede deberse a:
+      o Hay un equipo campeón (el resto de las naveshan sido destruidas).
+      o Ha recibido un Ctrl-C desde el teclado.
+      
+- El procesamiento (realización) de las acciones que sonenviadas por las naves en cada turno.
+
+La recepción de las acciones se realizará en una cola de mensajes.
+ 1.Recibir la acción
+ 2.Comprobar de qué tipo es
+ 3.Comprobar si se cumplen todos los requisitos para poder realizar la acción
+ 4.Si cumple los requisitos, realizar la acción. Si no, no realizarla.
+ 5.Si se ha realizado la acción, actualizar el mapa y mandar los comandos que correspondan.
+ 
+- Si llega un nuevo turno, el proceso simulador deberá:
+ 1.Restaurar  el  mapa:
+   Eliminar símbolos que se hayan  puesto  para mostrar acciones del turno anterior (por ejemplo símbolos de ataque) 
+   y dejar el mapa listo para un nuevo turno.Es decir que sólo contenga símbolos de las naves vivas e información que el usuario considere.
+   Podéis utilizar mapa_restore().
+ 2.Comprobar si hay una condición de ganador
+   Si hay un ganador, deberá mostrar por pantalla quién es el ganador y ordenar la finalización de la simulación
+ 3.Comunicar un nuevo turno a todos los jefes.
