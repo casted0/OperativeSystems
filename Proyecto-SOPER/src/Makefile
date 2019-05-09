@@ -20,7 +20,7 @@ simulador:
 	
 monitor:
 	mkdir -p $(TARGET)
-	$(CC) $(CFLAGS) gamescreen.c mapa.c monitor.c -o $(TARGET)/monitor $(TARGET)/simulador -lrt -lncurses -lm
+	$(CC) $(CFLAGS) gamescreen.c mapa.c monitor.c -o $(TARGET)/monitor -lrt -lncurses -lm
 		
 exe_simulador:
 	./$(SIMULADOR)

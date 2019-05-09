@@ -33,7 +33,7 @@ void mapa_print(tipo_mapa * mapa)
 
 int main() {
 
-	tipo_mapa * mapa = NULL;
+	//tipo_mapa * mapa = NULL;
 
 	screen_init();
 

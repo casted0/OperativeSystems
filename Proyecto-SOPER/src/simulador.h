@@ -44,21 +44,21 @@ typedef struct {
 
 
 typedef struct {
-	tipo_nave ** info_naves;
-	tipo_casilla ** casillas;
-	int * num_naves; // Número de naves vivas en un equipo
+	tipo_nave info_naves[N_EQUIPOS][N_NAVES];
+	tipo_casilla casillas[MAPA_MAXX][MAPA_MAXY];
+	int num_naves[N_EQUIPOS]; // Número de naves vivas en un equipo
 } tipo_mapa;
 
 #define SHM_MAP_NAME "/shm_naves"
 
-// Funciones auxiliares
+// ------ Funciones auxiliares ------ //
 
-tipo_nave * iniciar_nave(int equipo); 			// Funcion que inicia la memoria de una nave
-tipo_casilla * iniciar_casilla();     			// Funcion que inicia la memoria de una casilla
 tipo_mapa * iniciar_mapa();           			// Funcion que inicia la memoria de un mapa
 
-void destruir_nave(tipo_nave * nave);			// Funcion que libera la memoria de una nave
-void destruir_casilla(tipo_casilla * casilla);  // Funcion que libera la memoria de una casilla
+void estado_inicial_mapa();						// Función que dispone el mapa para el comienzo de la partida
+void estado_inicial_naves(tipo_mapa * mapa);	// Función que dispone las naves para el comienzo de la partida
+void estado_inicial_casillas(tipo_mapa * mapa); // Función que dispone las casillas para el comienzo de la partida
+
 void destruir_mapa(tipo_mapa * mapa); 			// Funcion que libera la memoria de un mapa
 
 #endif /* SRC_SIMULADOR_H_ */
