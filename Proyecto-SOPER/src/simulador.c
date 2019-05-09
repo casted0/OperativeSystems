@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <signal.h>
+#include <semaphore.h>
 #include <math.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -24,8 +25,16 @@ int main() {
     tipo_mapa * mapa = NULL;    // Mapa del simulador
     int pid = 1, pid_nave = 1;  // Pids para generar jefes y naves de cada jefe
     int i, j;                   // Indices
+    sem_t * sem_simulador = NULL;
 
 	printf("SIMULADOR: Simulador iniciado...\n");
+
+    if ((sem_simulador = sem_open(SEM, O_CREAT, S_IRUSR | S_IWUSR, 0)) == SEM_FAILED) {
+
+        printf("SIMULADOR: Error creando el semaforo.\n");
+        exit(EXIT_FAILURE);
+
+    }
 
     mapa = iniciar_mapa();
 
@@ -40,9 +49,13 @@ int main() {
 
     // COMPROBAR QUE SE HA DISPUESTO TODO EN EL MAPA
 
-    printf("Simbolo de la casilla (0, 0): [%c]\n", mapa_get_symbol(mapa, 5, 5));
-    
+    printf("Simbolo de la casilla (5, 5): [%c]\n", mapa_get_symbol(mapa, 5, 5));
 
+
+    // ABRIMOS EL SEMAFORO PARA QUE ENTRE EL MONITOR AHORA QUE HAY MAPA
+
+    sem_post(sem_simulador);
+    
     // INICIAR PROCESOS JEFE, 3 PORQUE HAY 3 EQUIPOS
 
     for(i = 0; i < N_EQUIPOS; i++){
@@ -95,7 +108,11 @@ int main() {
     if(pid != 0)
         for(i = 0; i < N_EQUIPOS; i++){ wait(NULL); }
 
+    sleep(4);
+
     destruir_mapa(mapa);
+    sem_close(sem_simulador);
+ 	sem_unlink(SEM);
     exit(EXIT_SUCCESS);
 
 }
@@ -129,7 +146,7 @@ tipo_mapa * iniciar_mapa(){
         return NULL;
     }
     
-    /* Map the memory segment */
+    /* MAPEAMOS LA MEMORIA COMPARTIDA */
     
     tipo_mapa * mapa_aux = mmap(NULL, sizeof(*mapa_aux), PROT_READ | PROT_WRITE, MAP_SHARED, fd_shm, 0);
     
@@ -196,13 +213,13 @@ void estado_inicial_naves(tipo_mapa * mapa){
 
                 }else if(mapa->info_naves[i][j].numNave == 1){
 
-                    mapa->info_naves[i][j].posx = 1;
-                    mapa->info_naves[i][j].posy = 0;
+                    mapa->info_naves[i][j].posx = 0;
+                    mapa->info_naves[i][j].posy = 1;
 
                 }else{
 
-                    mapa->info_naves[i][j].posx = 0;
-                    mapa->info_naves[i][j].posy = 1;
+                    mapa->info_naves[i][j].posx = 1;
+                    mapa->info_naves[i][j].posy = 0;
 
                 }
 
@@ -214,17 +231,17 @@ void estado_inicial_naves(tipo_mapa * mapa){
 
                 if(mapa->info_naves[i][j].numNave == 0){
 
-                    mapa->info_naves[i][j].posx = 20;
+                    mapa->info_naves[i][j].posx = 19;
                     mapa->info_naves[i][j].posy = 0;
 
                 }else if(mapa->info_naves[i][j].numNave == 1){
 
-                    mapa->info_naves[i][j].posx = 19;
+                    mapa->info_naves[i][j].posx = 18;
                     mapa->info_naves[i][j].posy = 0;
 
                 }else{
 
-                    mapa->info_naves[i][j].posx = 20;
+                    mapa->info_naves[i][j].posx = 19;
                     mapa->info_naves[i][j].posy = 1;
                     
                 }
@@ -238,17 +255,17 @@ void estado_inicial_naves(tipo_mapa * mapa){
 
                 if(mapa->info_naves[i][j].numNave == 0){
 
-                    mapa->info_naves[i][j].posx = 20;
-                    mapa->info_naves[i][j].posy = 20;
+                    mapa->info_naves[i][j].posx = 19;
+                    mapa->info_naves[i][j].posy = 19;
 
                 }else if(mapa->info_naves[i][j].numNave == 1){
 
                     mapa->info_naves[i][j].posx = 19;
-                    mapa->info_naves[i][j].posy = 20;
+                    mapa->info_naves[i][j].posy = 18;
 
                 }else{
 
-                    mapa->info_naves[i][j].posx = 20;
+                    mapa->info_naves[i][j].posx = 18;
                     mapa->info_naves[i][j].posy = 19;
                     
                 }
@@ -297,7 +314,9 @@ void estado_inicial_casillas(tipo_mapa * mapa){
     for(i = 0; i < N_EQUIPOS; i++){
         for(j = 0; j < N_NAVES; j++){
 
-            mapa_set_nave(mapa, mapa->info_naves[i][j]);
+            if( mapa_set_nave(mapa, mapa->info_naves[i][j]) == -1){
+                printf("No se ha puesto la nave del equipo %d numero %d.\n", i, j);
+            }
 
         }
     }

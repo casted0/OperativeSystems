@@ -14,6 +14,11 @@ void screen_addch(int row, int col, char symbol)
 	mvaddch(row,col,symbol);
 }
 
+void screen_addch_int(int row, int col, int symbol)
+{
+	mvaddch(row,col,symbol);
+}
+
 void screen_refresh()
 {
 	refresh();

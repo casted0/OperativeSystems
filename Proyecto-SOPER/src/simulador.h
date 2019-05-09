@@ -50,6 +50,7 @@ typedef struct {
 } tipo_mapa;
 
 #define SHM_MAP_NAME "/shm_naves"
+#define SEM "/sem_simulador"
 
 // ------ Funciones auxiliares ------ //
 
