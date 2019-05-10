@@ -90,8 +90,11 @@ int main() {
 
     
     int pid = 1,pipe_status,fd_jefes[3][2],fd_naves[3][2];  
-    int juego_terminado = 0,k,cont,fila,columna,turno=0; 
+    int juego_terminado = 0,k,cont,fila,columna,turno=0,n,m; 
     char mensaje[20]; 
+    int cas_columna,cas_fila;
+    char symbol;
+    bool encontrado;
 
     sem_t * sem_simulador = NULL;
     
@@ -302,18 +305,21 @@ int main() {
                     printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila+MOVER_ALCANCE,columna);
                     mapa_clean_casilla(mapa, fila, columna);
                 }
-                else if((fila-MOVER_ALCANCE)>=0 && mapa_get_symbol(mapa, fila-MOVER_ALCANCE, columna)==SYMB_VACIO){
-                    mapa->info_naves[i][j].posy=fila-MOVER_ALCANCE;
-                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
-                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila-MOVER_ALCANCE,columna);
-                    mapa_clean_casilla(mapa, fila, columna);
-                }
+
                 else if((columna+MOVER_ALCANCE)<MAPA_MAXX && mapa_get_symbol(mapa, fila, columna+MOVER_ALCANCE)==SYMB_VACIO){
                     mapa->info_naves[i][j].posx=columna+MOVER_ALCANCE;
                     mapa_set_nave(mapa, mapa->info_naves[i][j]);
                     printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila,columna+MOVER_ALCANCE);
                     mapa_clean_casilla(mapa, fila, columna);
                 }
+
+                else if((fila-MOVER_ALCANCE)>=0 && mapa_get_symbol(mapa, fila-MOVER_ALCANCE, columna)==SYMB_VACIO){
+                    mapa->info_naves[i][j].posy=fila-MOVER_ALCANCE;
+                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
+                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila-MOVER_ALCANCE,columna);
+                    mapa_clean_casilla(mapa, fila, columna);
+                }
+                
                 else if((columna-MOVER_ALCANCE)>=0 && mapa_get_symbol(mapa, fila, columna-MOVER_ALCANCE)==SYMB_VACIO){
                     mapa->info_naves[i][j].posx=columna-MOVER_ALCANCE;
                     mapa_set_nave(mapa, mapa->info_naves[i][j]);
@@ -332,6 +338,198 @@ int main() {
                 /*Toca atacar si se puede a un enemigo*/
                 printf("\nNAVE [%d], pertenezco al jefe %d, he recibido orden de atacar.", (j), (i));
                 fflush(stdout);
+
+                encontrado=false;
+                /*cas_columna,cas_fila*/
+                for(cas_columna=columna+1;cas_columna-columna<=ATAQUE_ALCANCE && cas_columna < MAPA_MAXX;cas_columna++){
+                    symbol=mapa_get_symbol(mapa, fila, cas_columna);
+                    if(symbol!=SYMB_VACIO && symbol!=mapa_get_symbol(mapa, fila, columna)){
+                        /*NAVE ENEMIGA ENCONTRADA*/
+                        /*ENCONTRAR LA NAVE ENEMIGA QUE ESTA EN ESA POSICION*/
+                        /*n,m*/
+                        for(m=0;m<3;m++){
+                            for(n=0;n<3;n++){
+                              if(mapa->info_naves[m][n].posx==cas_columna && mapa->info_naves[m][n].posy==fila) {
+                                    encontrado=true;
+                                    break;
+                              } 
+
+                            }
+                            if(encontrado){
+                                break;
+                            }
+                        }
+
+                        break;
+                    }
+
+                }
+                if(encontrado){
+                    mapa->info_naves[m][n].vida=mapa->info_naves[m][n].vida - ATAQUE_DANO;
+
+                    if(mapa->info_naves[m][n].vida<=0){
+                        mapa->info_naves[m][n].viva=false;
+                        mapa_set_symbol(mapa, fila, cas_columna, SYMB_DESTRUIDO);
+                        printf("\nNAVE [%d], pertenezco al jefe %d, he destruido la nave %d del jefe%d", (j), (i),n,m);
+                        fflush(stdout);
+                        mapa->accion_pendiente[m]=1;
+                    }
+                    else{
+                        mapa_set_symbol(mapa, fila, cas_columna, SYMB_TOCADO);
+                        printf("\nNAVE [%d], pertenezco al jefe %d, he daniado la nave %d del jefe%d", (j), (i),n,m);
+                        fflush(stdout);
+                    }
+                    
+
+                }
+
+                else{
+
+                    for(cas_columna=columna-1;columna-cas_columna<=ATAQUE_ALCANCE && cas_columna >= 0;cas_columna--){
+                        symbol=mapa_get_symbol(mapa, fila, cas_columna);
+                        if(symbol!=SYMB_VACIO && symbol!=mapa_get_symbol(mapa, fila, columna)){
+                            /*NAVE ENEMIGA ENCONTRADA*/
+                            /*ENCONTRAR LA NAVE ENEMIGA QUE ESTA EN ESA POSICION*/
+                            /*n,m*/
+                            for(m=0;m<3;m++){
+                                for(n=0;n<3;n++){
+                                  if(mapa->info_naves[m][n].posx==cas_columna && mapa->info_naves[m][n].posy==fila) {
+                                        encontrado=true;
+                                        break;
+                                  } 
+
+                                }
+                                if(encontrado){
+                                    break;
+                                }
+                            }
+
+                            break;
+                        }
+
+                    }
+                    if(encontrado){
+                        mapa->info_naves[m][n].vida=mapa->info_naves[m][n].vida - ATAQUE_DANO;
+
+                        if(mapa->info_naves[m][n].vida<=0){
+                            mapa->info_naves[m][n].viva=false;
+                            mapa_set_symbol(mapa, fila, cas_columna, SYMB_DESTRUIDO);
+                            printf("\nNAVE [%d], pertenezco al jefe %d, he destruido la nave %d del jefe%d", (j), (i),n,m);
+                            fflush(stdout);
+                            mapa->accion_pendiente[m]=1;
+                        }
+                        else{
+                            mapa_set_symbol(mapa, fila, cas_columna, SYMB_TOCADO);
+                            printf("\nNAVE [%d], pertenezco al jefe %d, he daniado la nave %d del jefe%d", (j), (i),n,m);
+                            fflush(stdout);
+                        }
+                        
+
+                    }
+                    else{
+
+                        for(cas_fila=fila+1;cas_fila-fila<=ATAQUE_ALCANCE && cas_fila < MAPA_MAXY ;cas_fila++){
+                            symbol=mapa_get_symbol(mapa, cas_fila, columna);
+                            if(symbol!=SYMB_VACIO && symbol!=mapa_get_symbol(mapa, fila, columna)){
+                                /*NAVE ENEMIGA ENCONTRADA*/
+                                /*ENCONTRAR LA NAVE ENEMIGA QUE ESTA EN ESA POSICION*/
+                                /*n,m*/
+                                for(m=0;m<3;m++){
+                                    for(n=0;n<3;n++){
+                                      if(mapa->info_naves[m][n].posx==columna && mapa->info_naves[m][n].posy==cas_fila) {
+                                            encontrado=true;
+                                            break;
+                                      } 
+
+                                    }
+                                    if(encontrado){
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+
+                        }
+                        if(encontrado){
+                            mapa->info_naves[m][n].vida=mapa->info_naves[m][n].vida - ATAQUE_DANO;
+
+                            if(mapa->info_naves[m][n].vida<=0){
+                                mapa->info_naves[m][n].viva=false;
+                                mapa_set_symbol(mapa, cas_fila, columna, SYMB_DESTRUIDO);
+                                printf("\nNAVE [%d], pertenezco al jefe %d, he destruido la nave %d del jefe%d", (j), (i),n,m);
+                                fflush(stdout);
+                                mapa->accion_pendiente[m]=1;
+                            }
+                            else{
+                                mapa_set_symbol(mapa, cas_fila, columna, SYMB_TOCADO);
+                                printf("\nNAVE [%d], pertenezco al jefe %d, he daniado la nave %d del jefe%d", (j), (i),n,m);
+                                fflush(stdout);
+                            }
+                            
+
+                        }
+                        else{
+
+                            for(cas_fila=fila-1;fila-cas_fila<=ATAQUE_ALCANCE && cas_fila >=0 ;cas_fila--){
+                            symbol=mapa_get_symbol(mapa, cas_fila, columna);
+                            if(symbol!=SYMB_VACIO && symbol!=mapa_get_symbol(mapa, fila, columna)){
+                                /*NAVE ENEMIGA ENCONTRADA*/
+                                /*ENCONTRAR LA NAVE ENEMIGA QUE ESTA EN ESA POSICION*/
+                                /*n,m*/
+                                for(m=0;m<3;m++){
+                                    for(n=0;n<3;n++){
+                                      if(mapa->info_naves[m][n].posx==columna && mapa->info_naves[m][n].posy==cas_fila) {
+                                            encontrado=true;
+                                            break;
+                                      } 
+
+                                    }
+                                    if(encontrado){
+                                        break;
+                                    }
+                                }
+
+                                break;
+                            }
+
+                        }
+                        if(encontrado){
+                            mapa->info_naves[m][n].vida=mapa->info_naves[m][n].vida - ATAQUE_DANO;
+
+                            if(mapa->info_naves[m][n].vida<=0){
+                                mapa->info_naves[m][n].viva=false;
+                                mapa_set_symbol(mapa, cas_fila, columna, SYMB_DESTRUIDO);
+                                printf("\nNAVE [%d], pertenezco al jefe %d, he destruido la nave %d del jefe%d", (j), (i),n,m);
+                                fflush(stdout);
+                                mapa->accion_pendiente[m]=1;
+                            }
+                            else{
+                                mapa_set_symbol(mapa, cas_fila, columna, SYMB_TOCADO);
+                                printf("\nNAVE [%d], pertenezco al jefe %d, he daniado la nave %d del jefe%d", (j), (i),n,m);
+                                fflush(stdout);
+                            }
+                            
+
+                        }
+                        else{
+
+                            printf("\nNAVE [%d], pertenezco al jefe %d, no he encontrado objetivos a rango", (j), (i));
+                            fflush(stdout);
+
+                        }
+
+
+
+                        }
+
+
+                    }
+
+
+                }
+
+
             }
             else if(!strcmp(mensaje,"DESTRUIR")){
                 /*Toca destruirse en el mapa*/
@@ -344,7 +542,7 @@ int main() {
 
         }
 
-        printf("\nNAVE [%d]: Nave ha recibido orden de terminar por Ctrl+C, pertenezco al jefe %d...", (j), (i));
+        printf("\nNAVE [%d]: Nave ha recibido orden de terminar por partida acabada, pertenezco al jefe %d...", (j), (i));
         fflush(stdout);
         exit(EXIT_SUCCESS);
     }
@@ -354,6 +552,8 @@ int main() {
 
             /*Leer el mensaje que le haya mandado el simulador*/
             read(fd_jefes[i][0], &mensaje, sizeof(mensaje));
+
+            mapa->accion_pendiente[i]=0;
 
             /*Poner semaforos entre cada nave*/
 
@@ -373,6 +573,13 @@ int main() {
                     strcpy(mensaje,"ATACAR");
                     write(fd_naves[0][1], &mensaje, sizeof(mensaje));
                 }
+                else{
+                    /*Toca destruir la nave 0, puesto que ya ha perdido toda su vida*/
+                    printf("\nJEFE [%d]: mandando destruir a nave 0.\n", (i));
+                    strcpy(mensaje,"DESTRUIR");
+                    write(fd_naves[0][1], &mensaje, sizeof(mensaje));
+
+                }
                 
                 usleep(SCREEN_REFRESH);
                 
@@ -385,6 +592,13 @@ int main() {
                     printf("\nJEFE [%d]: mandando atacar a nave 1.\n", (i));
                     strcpy(mensaje,"ATACAR");
                     write(fd_naves[1][1], &mensaje, sizeof(mensaje));
+                }
+                else{
+                    /*Toca destruir la nave 0, puesto que ya ha perdido toda su vida*/
+                    printf("\nJEFE [%d]: mandando destruir a nave 1.\n", (i));
+                    strcpy(mensaje,"DESTRUIR");
+                    write(fd_naves[1][1], &mensaje, sizeof(mensaje));
+
                 }
                 
                 usleep(SCREEN_REFRESH);
@@ -399,37 +613,23 @@ int main() {
                     strcpy(mensaje,"ATACAR");
                     write(fd_naves[2][1], &mensaje, sizeof(mensaje));
                 }
+                else{
+                    /*Toca destruir la nave 0, puesto que ya ha perdido toda su vida*/
+                    printf("\nJEFE [%d]: mandando destruir a nave 2.\n", (i));
+                    strcpy(mensaje,"DESTRUIR");
+                    write(fd_naves[2][1], &mensaje, sizeof(mensaje));
+
+                }
                 
 
-            }
-            else if(!strcmp(mensaje,"DESTRUIR 0")){
-                /*Toca destruir la nave 0*/
-
-                printf("\nJEFE [%d]: mandando destruir a nave 0.\n", (i));
-                strcpy(mensaje,"DESTRUIR");
-                write(fd_naves[i][0], &mensaje, sizeof(mensaje));
-            }
-            else if(!strcmp(mensaje,"DESTRUIR 1")){
-                /*Toca destruir la nave 1*/
-
-                printf("\nJEFE [%d]: mandando destruir a nave 1.\n", (i));
-                strcpy(mensaje,"DESTRUIR");
-                write(fd_naves[i][1], &mensaje, sizeof(mensaje));
-            }
-            else if(!strcmp(mensaje,"DESTRUIR 2")){
-                /*Toca destruir la nave 2*/
-
-                printf("\nJEFE [%d]: mandando destruir a nave 2.\n", (i));
-                strcpy(mensaje,"DESTRUIR");
-                write(fd_naves[i][2], &mensaje, sizeof(mensaje));
             }
             else if(!strcmp(mensaje,"FIN")){
                 /*Toca terminar*/
 
                 printf("\nJEFE [%d]: mandando fin a naves.\n", (i));
-                write(fd_naves[i][0], &mensaje, sizeof(mensaje));
-                write(fd_naves[i][1], &mensaje, sizeof(mensaje));
-                write(fd_naves[i][2], &mensaje, sizeof(mensaje));
+                write(fd_naves[0][1], &mensaje, sizeof(mensaje));
+                write(fd_naves[1][1], &mensaje, sizeof(mensaje));
+                write(fd_naves[2][1], &mensaje, sizeof(mensaje));
                 wait(NULL);
                 wait(NULL);
                 wait(NULL);
@@ -452,22 +652,23 @@ int main() {
             printf("\nSimulador: Empieza turno %d\n",turno);
             fflush(stdout);
 
-            /*Comienza el turno, primero comprueba que el equipo este vivo antes de darle turno*/
+            
             strcpy(mensaje,"TURNO");
-
+            /*Comienza el turno, primero comprueba que el equipo este vivo antes de darle turno o tengan una accion
+                pendiente a realizar como es mandar destruir una nave*/
 
 
             /*Poner semaforos entre cada turno*/
 
-            if(mapa_get_num_naves(mapa,0)>0){
+            if(mapa_get_num_naves(mapa,0)>0||mapa->accion_pendiente[0]){
                 write(fd_jefes[0][1], &mensaje, sizeof(mensaje));
             }
             sleep(1);
-            if(mapa_get_num_naves(mapa,1)>0){
+            if(mapa_get_num_naves(mapa,1)>0||mapa->accion_pendiente[1]){
                 write(fd_jefes[1][1], &mensaje, sizeof(mensaje));
             }
             sleep(1);
-            if(mapa_get_num_naves(mapa,2)>0){
+            if(mapa_get_num_naves(mapa,2)>0||mapa->accion_pendiente[2]){
                 write(fd_jefes[2][1], &mensaje, sizeof(mensaje));
             }
             sleep(1);
@@ -573,6 +774,10 @@ tipo_mapa * iniciar_mapa(){
     }
 
     mapa_aux->terminado=false;
+
+    mapa_aux->accion_pendiente[0]=0;
+    mapa_aux->accion_pendiente[1]=0;
+    mapa_aux->accion_pendiente[2]=0;
     
     return mapa_aux;
 

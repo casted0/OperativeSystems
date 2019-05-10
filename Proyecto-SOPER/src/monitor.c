@@ -98,8 +98,9 @@ int main() {
 
 	}
 
-	//quitar luego
-	//sleep(100);
+
+	/*Deja 5 segundos para ver el resultado en el que se ha terminado la partida*/
+	sleep(5);
 
 	screen_end();
 
