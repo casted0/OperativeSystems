@@ -1,0 +1,24 @@
+
+Autores: Carlos Arranz y Pablo Castedo. Grupo: 2271 
+
+El monitor y el simulador comparten una zona de memoria donde se haya el mapa, que va a contener la información sobre las naves, las casillas del mapa, el numero de naves vivas en cada equipo, y adicionalmente un bool que informa sobre el estado de la partida y si un equipo tiene alguna accion pendiente de ejecutar.
+
+En monitor se espera a que simulador suba un semáforo para empezar con el bucle de imprimir la pantalla y refrescarla.
+
+El simulador crea tres jefes con tres forks, y se conecta con ellos a través de una tubería, donde son los jefes los que leen lo que haya escrito el simulador.
+
+A su vez los jefes crean 3 naves cada uno, con otros 3 forks, y se conectan a sus respectivas naves hijas con tuberías, donde las naves leen lo que el jefe haya escrito.
+
+Se hace un manejador también para capturar un Control+C, que cuando capture el simulador dicha señal, mandará otra a los jefes, que la capturarán y mandarán otra a sus naves hijas. El simulador esperará por sus jefes, y los jefes por sus naves.
+
+Cuando empieza el turno, el simulador manda el mensaje de turno a los jefes si tienen naves vivas aun o alguna accion pendiente, como destruir una nave.
+Los jefes recibirán el mensaje del simulador y mandarán la acción correspondiente a sus naves vivas, o destruirán las muertas para que no salgan más por pantalla.
+
+Simulador revisa al final de cada turno que quede más de un equipo con naves vivas, o de lo contrario la partida acabará, con el equipo superviviente como ganador.
+
+Las naves por defecto tienden a moverse hacia abajo, derecha, etc, según un orden establecido.
+Y cuando les toca atacar comprueban si hay una nave enemiga en su misma fila o columna, y de haberla la disparan.
+
+Cuando una nave es tocada su símbolo se pone a % ese turno, y si hes destruida a X.
+
+
