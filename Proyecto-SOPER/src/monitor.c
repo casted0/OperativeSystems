@@ -83,14 +83,18 @@ int main() {
 
 	screen_init();
 
-	while(mapa != NULL){
+	sem_post(sem_simulador);
 
+	while(mapa->terminado==false){
+		
+		
 		mapa_print(mapa);
-		usleep(SCREEN_REFRESH);
+		/*	
 		fd_shm_aux = shm_open(SHM_MAP_NAME, O_RDONLY, 0);
 		if(fd_shm_aux == -1){
 			mapa = NULL;
-		}
+		}*/
+		usleep(SCREEN_REFRESH);
 
 	}
 

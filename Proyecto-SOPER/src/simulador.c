@@ -13,6 +13,8 @@
 #include <unistd.h>
 #include <mapa.h>
 
+tipo_mapa * mapa = NULL;    // Mapa del simulador
+
 // Variables globales usadas para contar el numero de naves
 
 int equipo0 = 0;
@@ -46,6 +48,10 @@ void manejador_padre(int sig) {
         printf("\nTodos los jefes y naves finalizados, cerrando simulacion...\n");
         fflush(stdout);
         sleep(1);
+
+        destruir_mapa(mapa);
+        sem_unlink(SEM);
+        exit(EXIT_SUCCESS);
     }
     else{
         sleep(20);
@@ -82,7 +88,7 @@ void manejador_nave(int sig){
 
 int main() {
 
-    tipo_mapa * mapa = NULL;    // Mapa del simulador
+    
     int pid = 1,pipe_status,fd_jefes[3][2],fd_naves[3][2];  
     int juego_terminado = 0,k,cont,fila,columna,turno=0; 
     char mensaje[20]; 
@@ -90,7 +96,7 @@ int main() {
     sem_t * sem_simulador = NULL;
     
     /*Para debuguear*/
-    shm_unlink(SHM_MAP_NAME);
+    //shm_unlink(SHM_MAP_NAME);
     //sem_unlink(SEM);
 
     
@@ -355,7 +361,8 @@ int main() {
                 /*Toca turno, primero comprueba que la nave esta viva antes de mandarle mensaje*/
 
 
-                sleep(2);
+                usleep(SCREEN_REFRESH);
+                
                 if(mapa->info_naves[i][0].viva==true){
 
                     printf("\nJEFE [%d]: mandando mover a nave 0.\n", (i));
@@ -366,7 +373,9 @@ int main() {
                     strcpy(mensaje,"ATACAR");
                     write(fd_naves[0][1], &mensaje, sizeof(mensaje));
                 }
-                sleep(2);
+                
+                usleep(SCREEN_REFRESH);
+                
                 if(mapa->info_naves[i][1].viva==true){
 
                     printf("\nJEFE [%d]: mandando mover a nave 1.\n", (i));
@@ -377,7 +386,9 @@ int main() {
                     strcpy(mensaje,"ATACAR");
                     write(fd_naves[1][1], &mensaje, sizeof(mensaje));
                 }
-                sleep(2);
+                
+                usleep(SCREEN_REFRESH);
+                
                 if(mapa->info_naves[i][2].viva==true){
 
                     printf("\nJEFE [%d]: mandando mover a nave 2.\n", (i));
@@ -451,15 +462,15 @@ int main() {
             if(mapa_get_num_naves(mapa,0)>0){
                 write(fd_jefes[0][1], &mensaje, sizeof(mensaje));
             }
-            sleep(10);
+            sleep(1);
             if(mapa_get_num_naves(mapa,1)>0){
                 write(fd_jefes[1][1], &mensaje, sizeof(mensaje));
             }
-            sleep(10);
+            sleep(1);
             if(mapa_get_num_naves(mapa,2)>0){
                 write(fd_jefes[2][1], &mensaje, sizeof(mensaje));
             }
-            sleep(10);
+            sleep(1);
             
 
 
@@ -560,6 +571,8 @@ tipo_mapa * iniciar_mapa(){
         shm_unlink(SHM_MAP_NAME);
         return NULL;
     }
+
+    mapa_aux->terminado=false;
     
     return mapa_aux;
 
@@ -738,7 +751,10 @@ void destruir_mapa(tipo_mapa * mapa){
 
     if(mapa){
 
+        mapa->terminado=true;
+
         munmap(mapa, sizeof(*mapa));
+
         shm_unlink(SHM_MAP_NAME);
 
     }
