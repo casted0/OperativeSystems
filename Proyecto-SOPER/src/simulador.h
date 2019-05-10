@@ -45,7 +45,7 @@ typedef struct {
 
 typedef struct {
 	tipo_nave info_naves[N_EQUIPOS][N_NAVES];
-	tipo_casilla casillas[MAPA_MAXX][MAPA_MAXY];
+	tipo_casilla casillas[MAPA_MAXY][MAPA_MAXX];
 	int num_naves[N_EQUIPOS]; // Número de naves vivas en un equipo
 } tipo_mapa;
 

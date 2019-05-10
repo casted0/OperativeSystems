@@ -19,13 +19,92 @@ int equipo0 = 0;
 int equipo1 = 0;
 int equipo2 = 0;
 
+int i, j;                   // Indices
+
+int pid_hijos[3]={0,0,0};
+int pid_padre = 1;
+
+/* manejador: rutina de tratamiento de la señal SIGINT. */
+void manejador_padre(int sig) {
+
+    if(pid_padre){
+
+        printf("\n\nTerminando la partida por haber recibido Ctrl+C...\n");
+        fflush(stdout);
+
+
+        kill(pid_hijos[0], SIGUSR1);
+        kill(pid_hijos[1], SIGUSR1);
+        kill(pid_hijos[2], SIGUSR1);
+        sleep(1);
+
+        wait(NULL);
+        wait(NULL);
+        wait(NULL);
+
+
+        printf("\nTodos los jefes y naves finalizados, cerrando simulacion...\n");
+        fflush(stdout);
+        sleep(1);
+    }
+    else{
+        sleep(20);
+    }
+}
+
+void manejador_jefe(int sig){
+
+    printf("\nJEFE [%d] ha recibido orden de terminar por Ctrl+C...", (i));
+    fflush(stdout);
+
+    
+    kill(pid_hijos[0], SIGUSR2);
+    kill(pid_hijos[1], SIGUSR2);
+    kill(pid_hijos[2], SIGUSR2);
+
+    wait(NULL);
+    wait(NULL);
+    wait(NULL);
+
+    exit(EXIT_SUCCESS);
+}
+
+
+void manejador_nave(int sig){
+
+    printf("\nNAVE [%d]: Nave ha recibido orden de terminar por Ctrl+C, pertenezco al jefe %d...", (j), (i));
+    fflush(stdout);
+    exit(EXIT_SUCCESS);
+
+}
+
+
 
 int main() {
 
     tipo_mapa * mapa = NULL;    // Mapa del simulador
-    int pid = 1, pid_nave = 1;  // Pids para generar jefes y naves de cada jefe
-    int i, j;                   // Indices
+    int pid = 1,pipe_status,fd_jefes[3][2],fd_naves[3][2];  
+    int juego_terminado = 0,k,cont,fila,columna,turno=0; 
+    char mensaje[20]; 
+
     sem_t * sem_simulador = NULL;
+    
+    /*Para debuguear*/
+    shm_unlink(SHM_MAP_NAME);
+    //sem_unlink(SEM);
+
+    
+    struct sigaction act;
+
+    act.sa_handler = manejador_padre;
+    sigemptyset(&(act.sa_mask));
+    act.sa_flags = 0;
+
+    /*Recibir la senial Ctrl+C*/
+    if (sigaction(SIGINT, &act, NULL) < 0) {
+        perror("sigaction");
+        exit(EXIT_FAILURE);
+    }
 
 	printf("SIMULADOR: Simulador iniciado...\n");
 
@@ -47,9 +126,7 @@ int main() {
 
     estado_inicial_mapa(mapa);
 
-    // COMPROBAR QUE SE HA DISPUESTO TODO EN EL MAPA
-
-    printf("Simbolo de la casilla (5, 5): [%c]\n", mapa_get_symbol(mapa, 5, 5));
+    
 
 
     // ABRIMOS EL SEMAFORO PARA QUE ENTRE EL MONITOR AHORA QUE HAY MAPA
@@ -58,57 +135,385 @@ int main() {
     
     // INICIAR PROCESOS JEFE, 3 PORQUE HAY 3 EQUIPOS
 
+    printf("\nSoy el padre con pid = %d\n",getpid());
+
     for(i = 0; i < N_EQUIPOS; i++){
 
-        if(pid != 0){
-            pid = fork();
-        }else if(pid == -1){
-            printf("SIMULADOR: Error creando procesos jefes.\n");
+        /*Crear la tuberia que conectara con el hijo que se crea debajo*/
+
+        pipe_status=pipe(fd_jefes[i]);
+
+        if(pipe_status == -1) {
+            perror("Error creando la tuberia\n");
             exit(EXIT_FAILURE);
-        }else{
+        }
+
+
+        pid_hijos[i] = fork();
+        if(pid_hijos[i] == -1){
+            printf("SIMULADOR: Error creando procesos jefes.\n");
+            fflush(stdout);
+            exit(EXIT_FAILURE);
+        }
+        if(!pid_hijos[i]){
+
+            pid=0;
+            pid_padre = 0;
+            pid_hijos[0]=0;
+            pid_hijos[1]=0;
+            pid_hijos[2]=0;
+
+            /*el hijo cierra la tuberia de salida para leer datos del padre*/
+            close(fd_jefes[i][1]);
+            /*Modelo de lectura: read(fd_jefes[i][0], &numero_leido, sizeof(int));*/
+
+            /*printf("Soy jefe hijo con pid = %d",getpid());*/
+            /* iniciar recibir seniales de los jefes*/
+
+            act.sa_handler = manejador_jefe;
+            sigemptyset(&(act.sa_mask));
+            act.sa_flags = 0;
+
+            /*Recibir la senial SIGUSR1*/
+            if (sigaction(SIGUSR1, &act, NULL) < 0) {
+                perror("sigaction");
+                exit(EXIT_FAILURE);
+            }
+
+
             break;
         }
 
+        /*el padre cierra la tuberia de entrada para enviar datos al hijo*/
+        close(fd_jefes[i][0]);
+        /*Modelo de escritura write(fd_jefes[i][1], &numero, sizeof(int));*/
     }
+
+    /* Para controlar en primeras versiones
+    if(pid_hijos[3]){
+
+        printf("\nSoy el padre con pid %d, mis hijos tiene pid = %d, %d, %d \n",getpid(),pid_hijos[0],pid_hijos[1],pid_hijos[1]);
+
+    }*/
 
     // ------ CODIGO DE LOS JEFES Y ESPERA DEL SIMULADOR A QUE ACABEN ------ //
 
-    if(pid == 0){
+    if(!pid){
+
 
         usleep(500);
-        printf("JEFE [%d]: Jefe creado.\n", (i-1));
+        printf("\nJEFE [%d]: Jefe creado.\n", (i));
         
         for(j = 0; j < N_NAVES; j++){
 
-            if(pid_nave != 0){
-                pid_nave = fork();
-            }else if(pid_nave == -1){
-                printf("JEFE [%d]: Error creando procesos nave.\n", (i-1));
-            }else{
+            /*Crear la tuberia con la que se conectara el jefe con su nave hija*/
+
+            pipe_status=pipe(fd_naves[j]);
+
+            if(pipe_status == -1) {
+                perror("Error creando la tuberia\n");
+                exit(EXIT_FAILURE);
+            }
+
+            pid_hijos[j]= fork();
+            if(pid_hijos[j] == -1){
+                printf("\nJEFE [%d]: Error creando procesos nave.\n", (i));
+                fflush(stdout);
+                exit(EXIT_FAILURE);
+            }
+            if(!pid_hijos[j]){
+
+                 /*la nave cierra la tuberia de salida para leer datos del jefe*/
+                close(fd_naves[j][1]);
+                /*Modelo de lectura: read(fd_naves[j][0], &numero_leido, sizeof(int));*/
+
+                pid=0;
+                pid_padre = 0;
+                pid_hijos[0]=0;
+                pid_hijos[1]=0;
+                pid_hijos[2]=0;
+
+                /*printf("Soy nave hija con pid = %d",getpid());*/
+
+                /* iniciar recibir seniales de las naves */
+
+                act.sa_handler = manejador_nave;
+                sigemptyset(&(act.sa_mask));
+                act.sa_flags = 0;
+
+                /*Recibir la senial SIGUSR2*/
+                if (sigaction(SIGUSR2, &act, NULL) < 0) {
+                    perror("sigaction");
+                    exit(EXIT_FAILURE);
+                }
+
+
                 break;
+            }
+            else{
+
+                /*el jefe cierra la tuberia de entrada para enviar datos a la nave*/
+                close(fd_naves[i][0]);
+                /*Modelo de escritura write(fd_naves[j][1], &numero, sizeof(int));*/
+
+
             }
 
         }
 
     }
+
+    /*Para controlar en primeras versiones
+    if(!pid && pid_hijos[3]){
+        printf("\nSoy jefe con pid %d, mis hijos tiene pid = %d, %d, %d \n",getpid(),pid_hijos[0],pid_hijos[1],pid_hijos[1]);
+
+    }*/
         
-    if(pid_nave == 0){
+    if(!pid_hijos[0]){   /*Aqui solo va a entrar las naves*/
 
         usleep(500);
-        printf("NAVE [%d]: Nave creada, pertenezco al jefe %d.\n", (j-1), (i-1));
+        printf("\nNAVE [%d]: Nave creada, pertenezco al jefe %d.\n", (j), (i));
         sleep(2);
+
+        while(!juego_terminado){
+
+            /*Leer el mensaje que le haya mandado el jefe*/
+            read(fd_naves[j][0], &mensaje, sizeof(mensaje));
+
+            columna=(mapa->info_naves[i][j].posx);
+            fila=(mapa->info_naves[i][j].posy);
+
+            if(!strcmp(mensaje,"FIN")){
+                /*Toca finalizar*/
+                juego_terminado=1;
+            }
+            else if(!strcmp(mensaje,"MOVER")){
+                /*Toca moverse aleatoriamente a una casilla si se puede*/    
+
+                if((fila+MOVER_ALCANCE)<MAPA_MAXY && mapa_get_symbol(mapa, fila+MOVER_ALCANCE, columna)==SYMB_VACIO){
+                    mapa->info_naves[i][j].posy=fila+MOVER_ALCANCE;
+                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
+                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila+MOVER_ALCANCE,columna);
+                    mapa_clean_casilla(mapa, fila, columna);
+                }
+                else if((fila-MOVER_ALCANCE)>=0 && mapa_get_symbol(mapa, fila-MOVER_ALCANCE, columna)==SYMB_VACIO){
+                    mapa->info_naves[i][j].posy=fila-MOVER_ALCANCE;
+                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
+                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila-MOVER_ALCANCE,columna);
+                    mapa_clean_casilla(mapa, fila, columna);
+                }
+                else if((columna+MOVER_ALCANCE)<MAPA_MAXX && mapa_get_symbol(mapa, fila, columna+MOVER_ALCANCE)==SYMB_VACIO){
+                    mapa->info_naves[i][j].posx=columna+MOVER_ALCANCE;
+                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
+                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila,columna+MOVER_ALCANCE);
+                    mapa_clean_casilla(mapa, fila, columna);
+                }
+                else if((columna-MOVER_ALCANCE)>=0 && mapa_get_symbol(mapa, fila, columna-MOVER_ALCANCE)==SYMB_VACIO){
+                    mapa->info_naves[i][j].posx=columna-MOVER_ALCANCE;
+                    mapa_set_nave(mapa, mapa->info_naves[i][j]);
+                    printf("\nNAVE [%d], pertenezco al jefe %d, me muevo a %d (fila), %d (columna)", (j), (i),fila,columna-MOVER_ALCANCE);
+                    fflush(stdout);
+                    mapa_clean_casilla(mapa, fila, columna);
+                }
+                else{
+                    printf("\nNAVE [%d], pertenezco al jefe %d, no he podido moverme.", (j), (i));
+                    printf("\nMis coordenadas son %d y %d.", fila, columna);
+                    fflush(stdout);
+                }
+
+            }
+            else if(!strcmp(mensaje,"ATACAR")){
+                /*Toca atacar si se puede a un enemigo*/
+                printf("\nNAVE [%d], pertenezco al jefe %d, he recibido orden de atacar.", (j), (i));
+                fflush(stdout);
+            }
+            else if(!strcmp(mensaje,"DESTRUIR")){
+                /*Toca destruirse en el mapa*/
+                mapa->info_naves[i][j].viva=false;
+                mapa_clean_casilla(mapa, fila, columna);
+                mapa_set_num_naves(mapa, i, (mapa_get_num_naves(mapa, i))-1);
+                printf("\nNAVE [%d], pertenezco al jefe %d, he sido destruida.", (j), (i));
+                fflush(stdout);
+            }
+
+        }
+
+        printf("\nNAVE [%d]: Nave ha recibido orden de terminar por Ctrl+C, pertenezco al jefe %d...", (j), (i));
+        fflush(stdout);
+        exit(EXIT_SUCCESS);
+    }
+
+    if(!pid_padre && pid_hijos[0]){ /*Aqui solo van a entrar los jefes*/
+        while(!juego_terminado){
+
+            /*Leer el mensaje que le haya mandado el simulador*/
+            read(fd_jefes[i][0], &mensaje, sizeof(mensaje));
+
+            /*Poner semaforos entre cada nave*/
+
+            if(!strcmp(mensaje,"TURNO")){
+                /*Toca turno, primero comprueba que la nave esta viva antes de mandarle mensaje*/
+
+
+                sleep(2);
+                if(mapa->info_naves[i][0].viva==true){
+
+                    printf("\nJEFE [%d]: mandando mover a nave 0.\n", (i));
+                    strcpy(mensaje,"MOVER");
+                    write(fd_naves[0][1], &mensaje, sizeof(mensaje));
+
+                    printf("\nJEFE [%d]: mandando atacar a nave 0.\n", (i));
+                    strcpy(mensaje,"ATACAR");
+                    write(fd_naves[0][1], &mensaje, sizeof(mensaje));
+                }
+                sleep(2);
+                if(mapa->info_naves[i][1].viva==true){
+
+                    printf("\nJEFE [%d]: mandando mover a nave 1.\n", (i));
+                    strcpy(mensaje,"MOVER");
+                    write(fd_naves[1][1], &mensaje, sizeof(mensaje));
+
+                    printf("\nJEFE [%d]: mandando atacar a nave 1.\n", (i));
+                    strcpy(mensaje,"ATACAR");
+                    write(fd_naves[1][1], &mensaje, sizeof(mensaje));
+                }
+                sleep(2);
+                if(mapa->info_naves[i][2].viva==true){
+
+                    printf("\nJEFE [%d]: mandando mover a nave 2.\n", (i));
+                    strcpy(mensaje,"MOVER");
+                    write(fd_naves[2][1], &mensaje, sizeof(mensaje));
+
+                    printf("\nJEFE [%d]: mandando mover a nave 2.\n", (i));
+                    strcpy(mensaje,"ATACAR");
+                    write(fd_naves[2][1], &mensaje, sizeof(mensaje));
+                }
+                
+
+            }
+            else if(!strcmp(mensaje,"DESTRUIR 0")){
+                /*Toca destruir la nave 0*/
+
+                printf("\nJEFE [%d]: mandando destruir a nave 0.\n", (i));
+                strcpy(mensaje,"DESTRUIR");
+                write(fd_naves[i][0], &mensaje, sizeof(mensaje));
+            }
+            else if(!strcmp(mensaje,"DESTRUIR 1")){
+                /*Toca destruir la nave 1*/
+
+                printf("\nJEFE [%d]: mandando destruir a nave 1.\n", (i));
+                strcpy(mensaje,"DESTRUIR");
+                write(fd_naves[i][1], &mensaje, sizeof(mensaje));
+            }
+            else if(!strcmp(mensaje,"DESTRUIR 2")){
+                /*Toca destruir la nave 2*/
+
+                printf("\nJEFE [%d]: mandando destruir a nave 2.\n", (i));
+                strcpy(mensaje,"DESTRUIR");
+                write(fd_naves[i][2], &mensaje, sizeof(mensaje));
+            }
+            else if(!strcmp(mensaje,"FIN")){
+                /*Toca terminar*/
+
+                printf("\nJEFE [%d]: mandando fin a naves.\n", (i));
+                write(fd_naves[i][0], &mensaje, sizeof(mensaje));
+                write(fd_naves[i][1], &mensaje, sizeof(mensaje));
+                write(fd_naves[i][2], &mensaje, sizeof(mensaje));
+                wait(NULL);
+                wait(NULL);
+                wait(NULL);
+
+                juego_terminado=1;
+            }
+
+        }
+
+        printf("\nJEFE [%d] ha recibido orden de terminar tras partida acabada...", (i));
+        fflush(stdout);
+
+        exit(EXIT_SUCCESS);
+    }
+
+    if(pid_padre){ /*Aqui solo va a entrar el padre*/
+
+        while(!juego_terminado){
+
+            printf("\nSimulador: Empieza turno %d\n",turno);
+            fflush(stdout);
+
+            /*Comienza el turno, primero comprueba que el equipo este vivo antes de darle turno*/
+            strcpy(mensaje,"TURNO");
+
+
+
+            /*Poner semaforos entre cada turno*/
+
+            if(mapa_get_num_naves(mapa,0)>0){
+                write(fd_jefes[0][1], &mensaje, sizeof(mensaje));
+            }
+            sleep(10);
+            if(mapa_get_num_naves(mapa,1)>0){
+                write(fd_jefes[1][1], &mensaje, sizeof(mensaje));
+            }
+            sleep(10);
+            if(mapa_get_num_naves(mapa,2)>0){
+                write(fd_jefes[2][1], &mensaje, sizeof(mensaje));
+            }
+            sleep(10);
+            
+
+
+            for(k=0,cont=0;k<N_EQUIPOS;k++){
+                if(mapa_get_num_naves(mapa,k)==0){
+                    cont++;
+                }
+
+            }
+
+            if(cont>=2){
+                juego_terminado=1;
+            }
+
+            turno++;
+        }
+
+
+        if(mapa_get_num_naves(mapa,0)==0 && mapa_get_num_naves(mapa,1)==0){
+
+            printf("\nJuego terminado, ha ganado el equipo 2\n");
+
+        }
+        else if(mapa_get_num_naves(mapa,0)==0 && mapa_get_num_naves(mapa,2)==0){
+
+            printf("\nJuego terminado, ha ganado el equipo 1\n");
+
+        }
+        else if(mapa_get_num_naves(mapa,1)==0 && mapa_get_num_naves(mapa,2)==0){
+
+            printf("\nJuego terminado, ha ganado el equipo 0\n");
+
+        }
+
+        /*Juego ha terminado y manda el mensaje acabar a sus hijos jefes, que ya llaman ellos a sus naves*/
+        strcpy(mensaje,"FIN");
+
+        write(fd_jefes[0][1], &mensaje, sizeof(mensaje));
+
+        write(fd_jefes[1][1], &mensaje, sizeof(mensaje));
+
+        write(fd_jefes[2][1], &mensaje, sizeof(mensaje));
+
+        wait(NULL);
+        wait(NULL);
+        wait(NULL);
 
     }
 
-    // ------ LIBERAR Y ACABAR ------ //
+    
 
-    if(pid_nave != 0)
-        for(i = 0; i < N_NAVES; i++){ wait(NULL); }
 
-    if(pid != 0)
-        for(i = 0; i < N_EQUIPOS; i++){ wait(NULL); }
+    //pause();/*Padre esperando a control+c*/
 
-    sleep(4);
 
     destruir_mapa(mapa);
     sem_close(sem_simulador);

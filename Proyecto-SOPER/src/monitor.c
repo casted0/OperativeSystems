@@ -94,7 +94,11 @@ int main() {
 
 	}
 
+	//quitar luego
+	//sleep(100);
+
 	screen_end();
+
 
 	printf("MONITOR: Cerrando el monitor...\n");
 
